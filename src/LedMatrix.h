@@ -12,20 +12,39 @@ public:
     #define MATRIX_WIDTH 64 
     #define MATRIX_HEIGHT 32
 
-    #define R1_PIN 25
-    #define G1_PIN 26
-    #define B1_PIN 27
-    #define R2_PIN 14
-    #define G2_PIN 12
-    #define B2_PIN 13
-    #define A_PIN 23
-    #define B_PIN 19
-    #define C_PIN 5
-    #define D_PIN 17
-    #define E_PIN 18
-    #define LAT_PIN 4
-    #define OE_PIN 15
-    #define CLK_PIN 16
+    #ifdef ESP32_S3
+        #include "platforms/esp32s3/esp32s3-default-pins.hpp"
+
+        #define R1_PIN   R1_PIN_DEFAULT
+        #define G1_PIN   G1_PIN_DEFAULT
+        #define B1_PIN   B1_PIN_DEFAULT
+        #define R2_PIN   R2_PIN_DEFAULT
+        #define G2_PIN   G2_PIN_DEFAULT
+        #define B2_PIN   B2_PIN_DEFAULT
+        #define A_PIN    A_PIN_DEFAULT
+        #define B_PIN    B_PIN_DEFAULT
+        #define C_PIN    C_PIN_DEFAULT
+        #define D_PIN    D_PIN_DEFAULT
+        #define E_PIN    E_PIN_DEFAULT
+        #define LAT_PIN  LAT_PIN_DEFAULT
+        #define OE_PIN   OE_PIN_DEFAULT
+        #define CLK_PIN  CLK_PIN_DEFAULT
+    #else        
+        #define R1_PIN 25
+        #define G1_PIN 26
+        #define B1_PIN 27
+        #define R2_PIN 14
+        #define G2_PIN 12
+        #define B2_PIN 13
+        #define A_PIN 23
+        #define B_PIN 19
+        #define C_PIN 5
+        #define D_PIN 17
+        #define E_PIN 18
+        #define LAT_PIN 4
+        #define OE_PIN 15
+        #define CLK_PIN 16
+    #endif
 
     #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 
@@ -57,7 +76,12 @@ public:
                             , uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS +
                             NEO_TILE_TOP + NEO_TILE_LEFT + NEO_TILE_ROWS) 
                             : FastLED_NeoMatrix(crgb, matrixW, matrixH, tX, tY, matrixType)
-        {}                        
+        {}  
+        
+        GenericLedMatrixIF(CRGB *leds, uint16_t w, uint16_t h, uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS +
+                         NEO_TILE_TOP + NEO_TILE_LEFT + NEO_TILE_ROWS) 
+                         : FastLED_NeoMatrix(leds, w, h, matrixType)
+        {}
     };
 
 #endif
