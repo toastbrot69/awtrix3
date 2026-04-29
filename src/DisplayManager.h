@@ -5,8 +5,8 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include <vector>
-#include <FastLED_NeoMatrix.h>
 
+#include "LedMatrix.h"
 
 class DisplayManager_
 {

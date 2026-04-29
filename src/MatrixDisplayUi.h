@@ -29,7 +29,8 @@
 #define MatrixDisplayUi_h
 
 #include <Arduino.h>
-#include "FastLED_NeoMatrix.h"
+#include "LedMatrix.h"
+//#include "GenericLedMatrixIF.h"
 #include "GifPlayer.h"
 #include "DisplayManager.h"
 
@@ -82,14 +83,14 @@ struct MatrixDisplayUiState
   void *userData = NULL;
 };
 
-typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
-typedef void (*OverlayCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
-typedef void (*BackgroundCallback)(FastLED_NeoMatrix *matrix);
+typedef void (*AppCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
+typedef void (*OverlayCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
+typedef void (*BackgroundCallback)(GenericLedMatrixIF *matrix);
 
 class MatrixDisplayUi
 {
 private:
-  FastLED_NeoMatrix *matrix;
+  GenericLedMatrixIF *matrix;
   CRGB ledsCopy[256];
   // Values for the Apps
   AnimationDirection appAnimationDirection = SLIDE_DOWN;
@@ -134,7 +135,7 @@ private:
   void crossfadeTransition();
 
 public:
-  MatrixDisplayUi(FastLED_NeoMatrix *matrix);
+  MatrixDisplayUi(GenericLedMatrixIF *matrix);
   uint32_t fadeColor(uint32_t color, uint32_t interval);
   uint8_t AppCount = 0;
   /**

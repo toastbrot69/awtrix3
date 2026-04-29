@@ -40,8 +40,6 @@ int previousDataLength = 0;
 #define MATRIX_PIN 32
 #endif
 
-#define MATRIX_WIDTH 32
-#define MATRIX_HEIGHT 8
 fs::File gifFile;
 GifPlayer gif;
 
@@ -52,8 +50,25 @@ float actualBri;
 int16_t cursor_x, cursor_y;
 uint32_t textColor;
 
+#ifdef USE_HUB75
+
+
+
+
+HUB75_I2S_CFG::i2s_pins _pins={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, LAT_PIN, OE_PIN, CLK_PIN};
+HUB75_I2S_CFG mxconfig(
+	MATRIX_WIDTH, // Module width
+	MATRIX_HEIGHT, // Module height
+	1, // chain length
+	_pins // pin mapping
+);
+GenericLedMatrixIF *matrix = new GenericLedMatrixIF(mxconfig);
+#else
 // NeoMatrix
-FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+GenericLedMatrixIF *matrix = new GenericLedMatrixIF(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+
+#endif  // ifdef USE_HUB75
+
 MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
 
 DisplayManager_ &DisplayManager_::getInstance()
@@ -1121,18 +1136,25 @@ void DisplayManager_::setup()
   TJpgDec.setCallback(jpg_output);
   TJpgDec.setJpgScale(1);
   random16_set_seed(millis());
-  FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
-  setMatrixLayout(MATRIX_LAYOUT);
-  matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
-  GAMMA = 1.9;
-  if (COLOR_CORRECTION)
-  {
-    FastLED.setCorrection(COLOR_CORRECTION);
-  }
-  if (COLOR_TEMPERATURE)
-  {
-    FastLED.setTemperature(COLOR_TEMPERATURE);
-  }
+
+  #ifdef USE_HUB75
+    matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
+  #else
+    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
+
+    setMatrixLayout(MATRIX_LAYOUT);
+    matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
+    GAMMA = 1.9;
+    if (COLOR_CORRECTION)
+    {
+      FastLED.setCorrection(COLOR_CORRECTION);
+    }
+    if (COLOR_TEMPERATURE)
+    {
+      FastLED.setTemperature(COLOR_TEMPERATURE);
+    }
+  #endif
+
   gif.setMatrix(matrix);
   ui->setAppAnimation(SLIDE_DOWN);
 
@@ -1673,26 +1695,29 @@ String DisplayManager_::getStats()
 
 void DisplayManager_::setMatrixLayout(int layout)
 {
-  delete matrix; // Free memory from the current matrix object
-  if (DEBUG_MODE)
-    DEBUG_PRINTF("Set matrix layout to %i", layout);
-  switch (layout)
-  {
-  case 0:
-    matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
-    break;
-  case 1:
-    matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
-    break;
-  case 2:
-    matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
-    break;
-  default:
-    break;
-  }
+  #ifdef USE_HUB75
+  #else
+    delete matrix; // Free memory from the current matrix object
+    if (DEBUG_MODE)
+      DEBUG_PRINTF("Set matrix layout to %i", layout);
+    switch (layout)
+    {
+    case 0:
+      matrix = new GenericLedMatrixIF(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
+      break;
+    case 1:
+      matrix = new GenericLedMatrixIF(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+      break;
+    case 2:
+      matrix = new GenericLedMatrixIF(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
+      break;
+    default:
+      break;
+    }
 
-  delete ui;                        // Free memory from the current ui object
-  ui = new MatrixDisplayUi(matrix); // Create a new ui object with the new matrix
+    delete ui;                        // Free memory from the current ui object
+    ui = new MatrixDisplayUi(matrix); // Create a new ui object with the new matrix
+  #endif
 }
 
 String DisplayManager_::getAppsAsJson()
@@ -2159,10 +2184,13 @@ void DisplayManager_::setNewSettings(const char *json)
       COLOR_CORRECTION.setRGB(r, g, b);
     }
 
-    if (COLOR_CORRECTION)
-    {
-      FastLED.setCorrection(COLOR_CORRECTION);
-    }
+    #ifdef USE_HUB75
+    #else
+      if (COLOR_CORRECTION)
+      {
+        FastLED.setCorrection(COLOR_CORRECTION);
+      }
+    #endif
   }
   if (doc.containsKey("CTEMP"))
   {
@@ -2184,10 +2212,13 @@ void DisplayManager_::setNewSettings(const char *json)
       COLOR_TEMPERATURE.setRGB(r, g, b);
     }
 
-    if (COLOR_TEMPERATURE)
-    {
-      FastLED.setTemperature(COLOR_TEMPERATURE);
-    }
+    #ifdef USE_HUB75
+    #else
+      if (COLOR_TEMPERATURE)
+      {
+        FastLED.setTemperature(COLOR_TEMPERATURE);
+      }
+    #endif
   }
   if (doc.containsKey("WDCA"))
   {

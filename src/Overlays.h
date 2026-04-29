@@ -59,11 +59,11 @@ struct Notification
 extern std::vector<Notification> notifications;
 extern bool notifyFlag;
 
-void StatusOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
+void StatusOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
 
-void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
+void MenuOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
 
-void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
+void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
 
 
 

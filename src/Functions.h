@@ -2,7 +2,8 @@
 #define FUNCTIONS_H
 
 #include <map>
-#include <FastLED_NeoMatrix.h>
+#include "LedMatrix.h"
+//#include "FastLED_NeoMatrix.h"
 #include <Globals.h>
 #include <ArduinoJson.h>
 

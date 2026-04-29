@@ -1,7 +1,8 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 #include <Arduino.h>
-#include <FastLED.h>
+//#include <FastLED.h>
+#include "LedMatrix.h"
 #include "effects.h"
  
 #define DEBUG

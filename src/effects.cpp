@@ -3,7 +3,7 @@
 const CRGBPalette16 palette = RainbowColors_p;
 CRGB tempLeds[32][8];
 
-void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void Pacifica(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static uint32_t sPacificaTime = 0;
     sPacificaTime += settings->speed;
@@ -25,7 +25,7 @@ void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *s
     }
 }
 
-void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void TheaterChase(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static uint16_t j = 0;
     static uint32_t lastUpdate = 0;
@@ -53,7 +53,7 @@ void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetting
     }
 }
 
-void Plasma(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void Plasma(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static double time = 0;
 
@@ -75,7 +75,7 @@ struct MatrixColumn
     CRGB color;       // Farbe des Pixels
 };
 
-void Matrix(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void Matrix(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static uint32_t lastMove = 0;
 
@@ -138,7 +138,7 @@ void Matrix(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *set
     }
 }
 
-void SwirlIn(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void SwirlIn(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static uint32_t lastUpdate = 0;
     static uint16_t angle = 0;
@@ -162,7 +162,7 @@ void SwirlIn(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *se
     }
 }
 
-void SwirlOut(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void SwirlOut(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static uint32_t lastUpdate = 0;
     static uint16_t angle = 0;
@@ -188,7 +188,7 @@ void SwirlOut(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *s
     }
 }
 
-void ColorWaves(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void ColorWaves(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     // Map palette colors to 0-255
     float colorIndex = 255 / (32 - 1);
@@ -216,7 +216,7 @@ struct Particle
 
 Particle stars[32][8]; // Create a buffer to store the state of the LEDs
 
-void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void TwinklingStars(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static uint32_t lastUpdate = 0;
 
@@ -272,7 +272,7 @@ uint16_t eye[5][64] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 65535, 0, 0, 0, 0, 0, 0, 65535, 0, 65535, 65535, 65535, 65535, 65535, 65535, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 };
 
-void LookingEyes(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void LookingEyes(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     if (blinkCountdown < sizeof(blinkIndex) / sizeof(blinkIndex[0]) - 1)
     {
@@ -460,7 +460,7 @@ void updateDirection()
     }
 }
 
-void SnakeGame(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void SnakeGame(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     if (isGameOver)
     {
@@ -585,7 +585,7 @@ Firework fireworks[MAX_FIREWORKS];
 uint32_t lastFireworkTime = 0;
 uint32_t fireworkInterval = 350; // milliseconds between new fireworks
 
-void Fireworks(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void Fireworks(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     // Spawn new firework if enough time has passed
     if (millis() - lastFireworkTime >= 1000 / fireworkInterval && random(100) < 50)
@@ -652,7 +652,7 @@ struct Ripple
 
 Ripple ripple;
 
-void RippleEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void RippleEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     // If ripple has finished, spawn a new one at a random location
     if (ripple.life > RIPPLE_SIZE)
@@ -699,7 +699,7 @@ void RippleEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetting
 
 // ######## PlasmaCloud ############
 
-void PlasmaCloudEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void PlasmaCloudEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static float plasmaTime = 0;
     static float hueShift = 0;
@@ -722,7 +722,7 @@ void PlasmaCloudEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSe
     hueShift += settings->speed / 5;
 }
 
-void CheckerboardEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void CheckerboardEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static float colorIndex1 = 0;
     static float colorIndex2 = 0;
@@ -750,7 +750,7 @@ void CheckerboardEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectS
     colorIndex2 += settings->speed;
 }
 
-void RadarEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void RadarEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static float beamAngle = 0;
     // Fade the previous state of the leds
@@ -802,7 +802,7 @@ struct Ball
     int dx, dy; // Speed of the ball
 };
 
-void PingPongEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void PingPongEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
 
     static Paddle paddle1 = {8 / 2, 1};       // Paddle on the left side
@@ -915,7 +915,7 @@ bool bricksRemain()
     return false;
 }
 
-void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void BrickBreakerEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static BricksPaddle paddle = {32 / 2, 1};       // Paddle in the middle of the matrix
     static BricksBall ball = {32 / 2, 8 / 2, 1, 1}; // Ball in the middle of the matrix
@@ -1001,7 +1001,7 @@ void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectS
     }
 }
 
-void MovingLine(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void MovingLine(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static int16_t linePosition = 0; // Start position of the line
     static int8_t direction = 1;     // Direction of the line movement
@@ -1031,7 +1031,7 @@ void MovingLine(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings 
     }
 }
 
-void Fade(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+void Fade(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     static uint8_t hue = 0; // Hue for the color of the 8
     // Change the color of the 8 based on speed
@@ -1071,7 +1071,7 @@ Effect effects[] = {
 
 // ######## Helper functions ############
 
-void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, u_int8_t index)
+void callEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, u_int8_t index)
 {
     if (index > -1)
     {
@@ -1231,7 +1231,7 @@ OverlayEffect getOverlay(String overlay)
     }
 }
 
-void EffectOverlay(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, OverlayEffect effect)
+void EffectOverlay(GenericLedMatrixIF *matrix, int16_t x, int16_t y, OverlayEffect effect)
 {
     static CRGB leds[32][8] = {CRGB::Black}; // Initialize all LEDs to black
     static int colorChanges[32][8] = {0};

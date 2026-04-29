@@ -10,7 +10,7 @@
 std::vector<Notification> notifications;
 bool notifyFlag = false;
 
-void StatusOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+void StatusOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     if (!WiFi.isConnected())
     {
@@ -22,7 +22,7 @@ void StatusOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
     }
 }
 
-void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+void MenuOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
 
     if (!MenuManager.inMenu)
@@ -34,7 +34,7 @@ void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlay
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
 }
 
-void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     // Check if notification flag is set
     if (notifications.empty())
