@@ -30,20 +30,37 @@ public:
         #define OE_PIN   OE_PIN_DEFAULT
         #define CLK_PIN  CLK_PIN_DEFAULT
     #else        
-        #define R1_PIN 25
-        #define G1_PIN 26
-        #define B1_PIN 27
-        #define R2_PIN 14
-        #define G2_PIN 12
-        #define B2_PIN 13
-        #define A_PIN 23
-        #define B_PIN 19
-        #define C_PIN 5
-        #define D_PIN 17
-        #define E_PIN 18
-        #define LAT_PIN 4
-        #define OE_PIN 15
-        #define CLK_PIN 16
+        #if 0
+            #define R1_PIN 25
+            #define G1_PIN 26
+            #define B1_PIN 27
+            #define R2_PIN 14
+            #define G2_PIN 12
+            #define B2_PIN 13
+            #define A_PIN 23
+            #define B_PIN 19
+            #define C_PIN 5
+            #define D_PIN 17
+            #define E_PIN 18
+            #define LAT_PIN 4
+            #define OE_PIN 15
+            #define CLK_PIN 16
+        #else
+            #define R1_PIN -1
+            #define G1_PIN -1
+            #define B1_PIN -1
+            #define R2_PIN -1
+            #define G2_PIN -1
+            #define B2_PIN -1
+            #define A_PIN -1
+            #define B_PIN -1
+            #define C_PIN -1
+            #define D_PIN -1
+            #define E_PIN -1
+            #define LAT_PIN -1
+            #define OE_PIN -1
+            #define CLK_PIN -1
+        #endif
     #endif
 
     #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>

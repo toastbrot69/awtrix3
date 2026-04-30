@@ -119,16 +119,35 @@ void addHandler()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/fullscreen", HTTP_GET, []()
                    {
-    String fps = mws.webserver->arg("fps");
-    if (fps == "") {
-        fps = "30"; 
-    }
-    String finalHTML = screenfull_html; 
-    finalHTML.replace("%%FPS%%", fps);
+                    String fps = mws.webserver->arg("fps");
+                    if (fps == "") {
+                        fps = "30"; 
+                    }
+                    String finalHTML = screenfull_html; 
+                    finalHTML.replace("%%FPS%%", fps);
 
-    mws.webserver->send(200, "text/html", finalHTML.c_str()); });
+                    fps.clear();  fps.concat((uint32_t)MATRIX_WIDTH);
+                    finalHTML.replace("%%WIDTH%%", fps);
+
+                    fps.clear();  fps.concat((uint32_t)MATRIX_HEIGHT);
+                    finalHTML.replace("%%HEIGHT%%", fps);
+
+                    mws.webserver->send(200, "text/html", finalHTML.c_str()); });
     mws.addHandler("/screen", HTTP_GET, []()
-                   { mws.webserver->send(200, "text/html", screen_html); });
+                   { 
+                    String fps, finalHTML = screen_html; 
+                    finalHTML.replace("%%FPS%%", fps);
+
+                    fps.clear();  fps.concat((uint32_t)MATRIX_WIDTH);
+                    finalHTML.replace("%%WIDTH%%", fps);
+
+                    fps.clear();  fps.concat((uint32_t)MATRIX_HEIGHT);
+                    finalHTML.replace("%%HEIGHT%%", fps);
+
+                    mws.webserver->send(200, "text/html", finalHTML.c_str()); 
+                    //mws.webserver->send(200, "text/html", screen_html); 
+                });
+        
     mws.addHandler("/backup", HTTP_GET, []()
                    { mws.webserver->send(200, "text/html", backup_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()

@@ -2299,7 +2299,13 @@ void DisplayManager_::setCustomAppColors(uint32_t color)
 
 String DisplayManager_::ledsAsJson()
 {
-  StaticJsonDocument<JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT)> jsonDoc;
+  #ifdef USE_HUB75
+    DynamicJsonDocument jsonDoc(JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT));
+  #else
+    StaticJsonDocument<JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT)> jsonDoc;
+  #endif
+  
+
   JsonArray jsonColors = jsonDoc.to<JsonArray>();
   for (int y = 0; y < MATRIX_HEIGHT; y++)
   {
