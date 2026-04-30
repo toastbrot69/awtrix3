@@ -52,9 +52,6 @@ uint32_t textColor;
 
 #ifdef USE_HUB75
 
-
-
-
 HUB75_I2S_CFG::i2s_pins _pins={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, LAT_PIN, OE_PIN, CLK_PIN};
 HUB75_I2S_CFG mxconfig(
 	MATRIX_WIDTH, // Module width
@@ -62,7 +59,7 @@ HUB75_I2S_CFG mxconfig(
 	1, // chain length
 	_pins // pin mapping
 );
-GenericLedMatrixIF *matrix = new GenericLedMatrixIF(mxconfig);
+GenericLedMatrixIF *matrix = new GenericLedMatrixIF(leds, mxconfig);
 #else
 // NeoMatrix
 GenericLedMatrixIF *matrix = new GenericLedMatrixIF(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
@@ -179,7 +176,7 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
   if (centered)
   {
     uint16_t textWidth = getTextWidth(text, textCase);
-    int16_t textX = ((32 - textWidth) / 2);
+    int16_t textX = ((MATRIX_WIDTH - textWidth) / 2);
     setCursor(textX, y);
   }
   else
@@ -2516,7 +2513,7 @@ bool DisplayManager_::moodlight(const char *json)
     CRGB color;
     color = kelvinToRGB(kelvin);
     color.nscale8(brightness);
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < MATRIX_WIDTH*MATRIX_HEIGHT; i++)
     {
       leds[i] = color;
     }
@@ -2525,7 +2522,7 @@ bool DisplayManager_::moodlight(const char *json)
   {
     auto c = doc["color"];
     uint32_t color888 = getColorFromJsonVariant(c, TEXTCOLOR_888);
-    drawFilledRect(0, 0, 32, 8, color888);
+    drawFilledRect(0, 0, MATRIX_WIDTH, MATRIX_HEIGHT, color888);
   }
   else
   {

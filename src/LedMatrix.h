@@ -68,8 +68,7 @@ public:
     class GenericLedMatrixIF : public MatrixPanel_I2S_DMA
     {
     public:
-        GenericLedMatrixIF(const HUB75_I2S_CFG& mxconfig) : MatrixPanel_I2S_DMA(mxconfig)
-        {}  
+        GenericLedMatrixIF(CRGB * crgb, const HUB75_I2S_CFG& mxconfig);
         
         void clear();
         void show();
@@ -77,7 +76,17 @@ public:
 
         static uint16_t Color(uint8_t r, uint8_t g, uint8_t b);
 
-        void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color);
+        virtual void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color);
+
+        virtual void drawPixel(int16_t x, int16_t y, uint16_t color); // overwrite adafruit implementation
+        virtual void drawPixel(int16_t x, int16_t y, const CRGB& crgb); // overwrite adafruit implementation
+
+        virtual void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
+        //virtual inline void drawFastVLine(int16_t x, int16_t y, int16_t h, uint8_t r, uint8_t g, uint8_t b);
+        virtual void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
+        //virtual inline void drawFastHLine(int16_t x, int16_t y, int16_t w, uint8_t r, uint8_t g, uint8_t b);
+    protected:
+        CRGB *p_crgb;
     };
 
 #else
