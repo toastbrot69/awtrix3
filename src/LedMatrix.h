@@ -82,9 +82,12 @@ public:
         virtual void drawPixel(int16_t x, int16_t y, const CRGB& crgb); // overwrite adafruit implementation
 
         virtual void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
-        //virtual inline void drawFastVLine(int16_t x, int16_t y, int16_t h, uint8_t r, uint8_t g, uint8_t b);
         virtual void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
-        //virtual inline void drawFastHLine(int16_t x, int16_t y, int16_t w, uint8_t r, uint8_t g, uint8_t b);
+
+    #ifndef NO_FAST_FUNCTIONS
+        virtual inline void drawFastVLine(int16_t x, int16_t y, int16_t h, uint8_t r, uint8_t g, uint8_t b);
+        virtual inline void drawFastHLine(int16_t x, int16_t y, int16_t w, uint8_t r, uint8_t g, uint8_t b);
+    #endif
     protected:
         CRGB *p_crgb;
     };

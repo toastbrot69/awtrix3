@@ -91,7 +91,7 @@ class MatrixDisplayUi
 {
 private:
   GenericLedMatrixIF *matrix;
-  CRGB ledsCopy[256];
+  CRGB ledsCopy[MATRIX_WIDTH * MATRIX_HEIGHT];
   // Values for the Apps
   AnimationDirection appAnimationDirection = SLIDE_DOWN;
   int8_t lastTransitionDirection = 1;
