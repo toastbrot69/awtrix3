@@ -1,3 +1,4 @@
+#include "Globals.h"
 #include "LedMatrix.h"
 
 #ifdef USE_HUB75
@@ -23,13 +24,16 @@ static void col2rgb(uint16_t color, CRGB& crgb)
      // 565
     crgb.r = (color >> 8) & 0xf8;
     crgb.g = (color >> 3) & 0xfc;
-    crgb.b = (color << 3) ;
+    crgb.b = (color << 3) & 0xf8;
 }
 
 void  GenericLedMatrixIF::drawPixel(int16_t x, int16_t y, uint16_t color) // overwrite adafruit implementation
 {
     CRGB crgb;
     col2rgb(color, crgb);
+
+//        ESP_LOGE("HUB75", "dp(%i:%i) 0x%04x %02x %02x %02x", x, y, color, crgb.r, crgb.g, crgb.b);
+
 
     this->drawPixel(x, y, crgb);
 }
@@ -48,7 +52,10 @@ void GenericLedMatrixIF::drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[]
 
 int GenericLedMatrixIF::XY(int16_t x, int16_t y) // compat with FastLED code, returns 1D offset
 {
-    if( x >= MATRIX_WIDTH) 
+    if(x < 0 || y < 0) 
+        return 0;
+        
+    if(x >= MATRIX_WIDTH) 
         return 0;
     
     if( y >= MATRIX_HEIGHT) 

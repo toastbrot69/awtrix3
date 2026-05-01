@@ -43,14 +43,25 @@ const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
 #define I2C_SCL_PIN D1
 #define I2C_SDA_PIN D3
 #elif ESP32_S3
-#define BATTERY_PIN 4
-#define BUZZER_PIN 5
-#define LDR_PIN 6
-#define BUTTON_UP_PIN 7
-#define BUTTON_DOWN_PIN 8
-#define BUTTON_SELECT_PIN 10
-#define I2C_SCL_PIN 10
-#define I2C_SDA_PIN 11
+#ifdef USE_HUB75
+    #define BATTERY_PIN 14
+    #define BUZZER_PIN 48
+    #define LDR_PIN 14
+    #define BUTTON_UP_PIN 21
+    #define BUTTON_DOWN_PIN 20
+    #define BUTTON_SELECT_PIN 19
+    #define I2C_SCL_PIN 3
+    #define I2C_SDA_PIN 8
+#else
+    #define BATTERY_PIN 4
+    #define BUZZER_PIN 5
+    #define LDR_PIN 6
+    #define BUTTON_UP_PIN 7
+    #define BUTTON_DOWN_PIN 8
+    #define BUTTON_SELECT_PIN 10
+    #define I2C_SCL_PIN 10
+    #define I2C_SDA_PIN 11
+#endif
 #else
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
@@ -81,6 +92,7 @@ class Mp3Notify
 };
 SoftwareSerial mySoftwareSerial(DFPLAYER_RX, DFPLAYER_TX); // RX, TX
 DFMiniMp3<SoftwareSerial, Mp3Notify> dfmp3(mySoftwareSerial);
+
 
 MelodyPlayer player(BUZZER_PIN, 1, LOW);
 

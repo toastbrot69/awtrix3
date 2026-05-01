@@ -25,7 +25,7 @@ public:
         #define B_PIN    B_PIN_DEFAULT
         #define C_PIN    C_PIN_DEFAULT
         #define D_PIN    D_PIN_DEFAULT
-        #define E_PIN    E_PIN_DEFAULT
+        #define E_PIN    39
         #define LAT_PIN  LAT_PIN_DEFAULT
         #define OE_PIN   OE_PIN_DEFAULT
         #define CLK_PIN  CLK_PIN_DEFAULT

@@ -61,8 +61,10 @@ void BootAnimation(void *parameter)
 
 void setup()
 {
-  pinMode(15, OUTPUT);
-  digitalWrite(15, LOW);
+  #ifndef USE_HUB75
+    pinMode(15, OUTPUT);
+    digitalWrite(15, LOW);
+  #endif
   delay(2000);
   Serial.begin(115200);
   loadSettings();
