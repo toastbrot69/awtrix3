@@ -68,7 +68,7 @@ public:
     class GenericLedMatrixIF : public MatrixPanel_I2S_DMA
     {
     public:
-        GenericLedMatrixIF(CRGB * crgb, const HUB75_I2S_CFG& mxconfig);
+        GenericLedMatrixIF(CRGB * crgb);
         
         void clear();
         void show();
@@ -79,6 +79,7 @@ public:
         virtual void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color);
 
         virtual void drawPixel(int16_t x, int16_t y, uint16_t color); // overwrite adafruit implementation
+        virtual void drawPixel(int16_t x, int16_t y, uint32_t color); // overwrite adafruit implementation
         virtual void drawPixel(int16_t x, int16_t y, const CRGB& crgb); // overwrite adafruit implementation
 
         virtual void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);

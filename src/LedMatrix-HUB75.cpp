@@ -3,7 +3,31 @@
 
 #ifdef USE_HUB75
 
-GenericLedMatrixIF::GenericLedMatrixIF(CRGB * crgb, const HUB75_I2S_CFG& mxconfig) : MatrixPanel_I2S_DMA(mxconfig)
+HUB75_I2S_CFG::i2s_pins _pins={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, LAT_PIN, OE_PIN, CLK_PIN};
+/*
+HUB75_I2S_CFG mxconfig(
+	MATRIX_WIDTH, // Module width
+	MATRIX_HEIGHT, // Module height
+	1, // chain length
+	_pins // pin mapping
+);
+*/
+HUB75_I2S_CFG mxconfig(
+	MATRIX_WIDTH, // Module width
+	MATRIX_HEIGHT, // Module height
+	1, // chain length
+	_pins, // pin mapping
+  HUB75_I2S_CFG::SHIFTREG, // shift_driver 
+  HUB75_I2S_CFG::TYPE138, //line_driver
+  false, // double buffer 
+  HUB75_I2S_CFG::HZ_16M, // clk_speed _i2sspeed
+  DEFAULT_LAT_BLANKING, // Anything > 1 seems to cause artefacts on ICS panels
+  false,  // clockphase
+  60,  // _min_refresh_rate
+  PIXEL_COLOR_DEPTH_BITS_DEFAULT // _pixel_color_depth_bits
+);
+
+GenericLedMatrixIF::GenericLedMatrixIF(CRGB * crgb) : MatrixPanel_I2S_DMA(mxconfig)
 {
     p_crgb = crgb;
 } 
@@ -27,14 +51,19 @@ static void col2rgb(uint16_t color, CRGB& crgb)
     crgb.b = (color << 3) & 0xf8;
 }
 
+void  GenericLedMatrixIF::drawPixel(int16_t x, int16_t y, uint32_t color) // overwrite adafruit implementation
+{
+    CRGB crgb(color);
+//        ESP_LOGE("HUB75", "dp(%i:%i) 0x%04x %02x %02x %02x", x, y, color, crgb.r, crgb.g, crgb.b);
+    this->drawPixel(x, y, crgb);
+}
+
 void  GenericLedMatrixIF::drawPixel(int16_t x, int16_t y, uint16_t color) // overwrite adafruit implementation
 {
-    CRGB crgb;
+    CRGB crgb(color);
     col2rgb(color, crgb);
 
 //        ESP_LOGE("HUB75", "dp(%i:%i) 0x%04x %02x %02x %02x", x, y, color, crgb.r, crgb.g, crgb.b);
-
-
     this->drawPixel(x, y, crgb);
 }
 

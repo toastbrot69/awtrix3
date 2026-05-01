@@ -51,15 +51,7 @@ int16_t cursor_x, cursor_y;
 uint32_t textColor;
 
 #ifdef USE_HUB75
-
-HUB75_I2S_CFG::i2s_pins _pins={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, LAT_PIN, OE_PIN, CLK_PIN};
-HUB75_I2S_CFG mxconfig(
-	MATRIX_WIDTH, // Module width
-	MATRIX_HEIGHT, // Module height
-	1, // chain length
-	_pins // pin mapping
-);
-GenericLedMatrixIF *matrix = new GenericLedMatrixIF(leds, mxconfig);
+GenericLedMatrixIF *matrix = new GenericLedMatrixIF(leds);
 #else
 // NeoMatrix
 GenericLedMatrixIF *matrix = new GenericLedMatrixIF(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
