@@ -11,7 +11,7 @@ public:
 #define ERROR_UNKNOWNCONTROLEXT 4
 #define ERROR_FINISHED 5
 #define WIDTH 32
-#define HEIGHT 8
+#define HEIGHT 16
   uint8_t currentFrame;
 
 private:

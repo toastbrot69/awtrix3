@@ -17,11 +17,11 @@ HUB75_I2S_CFG mxconfig(
 	MATRIX_HEIGHT, // Module height
 	1, // chain length
 	_pins, // pin mapping
-  HUB75_I2S_CFG::SHIFTREG, // shift_driver 
-  HUB75_I2S_CFG::TYPE138, //line_driver
-  false, // double buffer 
+  HUB75_I2S_CFG::FM6124, // shift_driver 
+  HUB75_I2S_CFG::TYPE_DIRECT, //line_driver
+  true, // double buffer 
   HUB75_I2S_CFG::HZ_16M, // clk_speed _i2sspeed
-  DEFAULT_LAT_BLANKING, // Anything > 1 seems to cause artefacts on ICS panels
+  1, // Anything > 1 seems to cause artefacts on ICS panels
   false,  // clockphase
   60,  // _min_refresh_rate
   PIXEL_COLOR_DEPTH_BITS_DEFAULT // _pixel_color_depth_bits
@@ -41,6 +41,7 @@ void GenericLedMatrixIF::clear()
 
 void GenericLedMatrixIF::show()
 { 
+    flipDMABuffer();
 }
 
 static void col2rgb(uint16_t color, CRGB& crgb)

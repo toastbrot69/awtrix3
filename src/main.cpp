@@ -53,7 +53,11 @@ void BootAnimation(void *parameter)
     {
       break;
     }
-    DisplayManager.HSVtext(4, 6, "AWTRIX", true, 0);
+    #ifdef USE_HUB75
+      DisplayManager.HSVtext(MATRIX_WIDTH/2 - 6*4, MATRIX_HEIGHT/2 + 2, "AWTRIX-HUB75", true, 0);
+    #else
+      DisplayManager.HSVtext(4, 6, "AWTRIX", true, 0);
+    #endif
     vTaskDelay(xDelay);
   }
   vTaskDelete(NULL);
@@ -84,7 +88,12 @@ void setup()
     DisplayManager.startArtnet();
     StopTask = true;
     float x = 4;
-    String textForDisplay = "AWTRIX   " + ServerManager.myIP.toString();
+    String textForDisplay;
+    #ifdef USE_HUB75
+      textForDisplay = "AWTRIX-HUB75   " + ServerManager.myIP.toString();
+    #else
+      textForDisplay = "AWTRIX   " + ServerManager.myIP.toString();
+    #endif
 
     if (WEB_PORT != 80)
     {
