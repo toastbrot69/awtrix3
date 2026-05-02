@@ -2478,6 +2478,49 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
           }
         }
       }
+      else if (command == "di")
+      {
+        int x = params[0].as<int>();
+        int y = params[1].as<int>();
+
+        ESP_LOGE("draw", "di(%i:%i) %s", x, y, params[2].as<String>().c_str());
+
+        {
+          const char *extensions[] = {".jpg", ".gif"};
+          bool isGifFlags[] = {false, true};
+
+          static bool isGif = false;
+          static fs::File icon;
+          static uint8_t currentFrame = 0;
+
+          if(! icon)
+          {
+            for (int i = 0; i < 2; i++)
+            {
+                String filePath = "/ICONS/" + params[2].as<String>() + extensions[i];
+                if (LittleFS.exists(filePath))
+                {
+                    isGif = isGifFlags[i];
+                    icon = LittleFS.open(filePath);
+                    currentFrame = 0;
+                    break;
+                }
+            }
+          }
+
+          if (isGif)
+          {
+              static GifPlayer gifp;
+              gifp.setMatrix(matrix);
+              gifp.playGif(x, y, &icon, currentFrame);
+              currentFrame = gifp.getFrame();
+          }
+          else
+          {
+            DisplayManager.drawJPG(x, y, icon);
+          }
+        }
+      }
     }
   }
   doc.clear();

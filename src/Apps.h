@@ -5,6 +5,21 @@
 #include "MatrixDisplayUi.h"
 #include "effects.h"
 
+class IconContainer
+{
+public:
+    IconContainer()
+    {
+        currentFrame = 0;
+        isGif=false;
+    }
+    uint8_t currentFrame;
+    String iconName;
+
+    File icon;
+    bool isGif;
+}
+
 struct CustomApp
 {
     int bounceDir = 0;

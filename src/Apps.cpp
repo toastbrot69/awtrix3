@@ -139,7 +139,7 @@ void TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x,
         }
         else
         {
-            DisplayManager.drawFilledRect(0 + x, 0 + y, 32, 8, TEXTCOLOR_888);
+            DisplayManager.drawFilledRect(0 + x, 0 + y, MATRIX_WIDTH, MATRIX_HEIGHT, TEXTCOLOR_888);
         }
 
         t[2] = (timeformat[2] == ' ' && timer_time() % 2) ? ';' : ':';
@@ -150,9 +150,9 @@ void TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x,
             matrix->drawBitmap(xx + x, y, bigdigits_mask[t[i] - '0'], 6, 7, 0);
         }
 
-        matrix->drawFastHLine(0 + x, 7 + y, 32, 0);
+        matrix->drawFastHLine(0 + x, 7 + y, MATRIX_WIDTH, 0);
         matrix->drawFastVLine(6 + x, 0 + y, 7, 0);
-        matrix->drawFastVLine(25 + x, 0 + y, 7, 0);
+        matrix->drawFastVLine(MATRIX_WIDTH-7 + x, 0 + y, 7, 0);
         return;
     }
     else if (TIME_MODE == 6)
@@ -456,7 +456,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
         }
     }
 
-    DisplayManager.drawFilledRect(x, y, 32, 8, ca->background);
+    DisplayManager.drawFilledRect(x, y, MATRIX_WIDTH, 8, ca->background);
 
     if (ca->effect > -1)
     {
@@ -501,7 +501,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
         textWidth = getTextWidth(replacedText.c_str(), ca->textCase);
     }
 
-    uint16_t availableWidth = (hasIcon) ? 24 : 32;
+    uint16_t availableWidth = (hasIcon) ? MATRIX_WIDTH-8 : MATRIX_WIDTH;
 
     bool noScrolling = textWidth <= availableWidth;
     int iconWidth;
@@ -593,7 +593,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
 
     if (textWidth > availableWidth && !(state->appState == IN_TRANSITION))
     {
-        if (ca->scrollposition + ca->textOffset <= (-textWidth))
+        if (ca->scrollposition + ca->textOffset <= (-(textWidth - availableWidth)))
         {
             if (ca->iconWasPushed && ca->pushIcon == 2)
             {
@@ -618,7 +618,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
     }
     if (!noScrolling)
     {
-        if ((ca->scrollDelay > MATRIX_FPS) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > 31))
+        if ((ca->scrollDelay > MATRIX_FPS) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > MATRIX_WIDTH-1))
         {
             if (state->appState == FIXED && !ca->noScrolling)
             {
@@ -656,7 +656,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
     int16_t textX;
     if (ca->center)
     {
-        textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
+        textX = hasIcon ? ((MATRIX_WIDTH - 8 - textWidth) / 2) + 9 : ((MATRIX_WIDTH - textWidth) / 2);
     }
     else
     {
@@ -736,7 +736,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
 
     if (ca->lifeTimeEnd)
     {
-        DisplayManager.drawRect(x, y, 32 + x, 8 + y, 0x6e0700);
+        DisplayManager.drawRect(x, y, MATRIX_WIDTH - x, MATRIX_HEIGHT - y, 0x6e0700);
     }
 
     if (!ca->overlay == NONE)
