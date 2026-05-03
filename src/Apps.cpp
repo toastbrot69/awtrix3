@@ -466,25 +466,8 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
-    if ((ca->iconName.length() > 0) && !ca->icon)
-    {
-        const char *extensions[] = {".jpg", ".gif"};
-        bool isGifFlags[] = {false, true};
-
-        for (int i = 0; i < 2; i++)
-        {
-            String filePath = "/ICONS/" + ca->iconName + extensions[i];
-            if (LittleFS.exists(filePath))
-            {
-                ca->isGif = isGifFlags[i];
-                ca->icon = LittleFS.open(filePath);
-                ca->currentFrame = 0;
-                break;
-            }
-        }
-    }
-
-    bool hasIcon = ca->icon || ca->jpegDataSize > 0;
+    ca->icons[0].load();
+    bool hasIcon = ca->icons[0].isValid() || ca->jpegDataSize > 0;
 
     uint16_t textWidth = 0;
     if (!ca->fragments.empty())
@@ -526,10 +509,10 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
                     }
                 }
             }
-            if (ca->isGif)
+            if (ca->icons[0].isGif)
             {
-                iconWidth = gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon, ca->currentFrame);
-                ca->currentFrame = gifPlayer->getFrame();
+                iconWidth = gifPlayer[0].playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icons[0].icon, ca->icons[0].currentFrame);
+                ca->icons[0].currentFrame = gifPlayer[0].getFrame();
             }
             else
             {
@@ -540,7 +523,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
                 }
                 else
                 {
-                    DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->icon);
+                    DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->icons[0].icon);
                 }
             }
             if (!noScrolling)
@@ -558,7 +541,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
 
         if (ca->drawInstructions.length() > 0)
         {
-            DisplayManager.processDrawInstructions(x, y, ca->drawInstructions);
+            DisplayManager.processDrawInstructions(x, y, ca->drawInstructions, ca, gifPlayer);
         }
 
         if (ca->progress > -1)

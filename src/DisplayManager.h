@@ -71,7 +71,7 @@ public:
     bool indicatorParser(uint8_t indicator, const char *json);
     void showSleepAnimation();
     void sendAppLoop();
-    void processDrawInstructions(int16_t x, int16_t y, String &drawInstructions);
+    void processDrawInstructions(int16_t x, int16_t y, String &drawInstructions, struct CustomApp* app, class GifPlayer* gifplayerarr);
     String ledsAsJson();
     String getAppsWithIcon();
     void startArtnet();

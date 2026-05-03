@@ -10,8 +10,8 @@ public:
 #define ERROR_BADGIFFORMAT 3
 #define ERROR_UNKNOWNCONTROLEXT 4
 #define ERROR_FINISHED 5
-#define WIDTH 32
-#define HEIGHT 16
+#define WIDTH 8
+#define HEIGHT 8
   uint8_t currentFrame;
 
 private:

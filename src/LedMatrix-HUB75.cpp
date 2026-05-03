@@ -30,6 +30,8 @@ HUB75_I2S_CFG mxconfig(
 GenericLedMatrixIF::GenericLedMatrixIF(CRGB * crgb) : MatrixPanel_I2S_DMA(mxconfig)
 {
     p_crgb = crgb;
+
+    SENSOR_READING=false; // 
 } 
 
 void GenericLedMatrixIF::clear()

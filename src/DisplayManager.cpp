@@ -662,29 +662,25 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
     if (newIconName.length() > 64)
     {
-      customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
-      customApp.isGif = false;
-      customApp.icon.close();
-      customApp.iconName = "";
-      customApp.iconPosition = 0;
-      customApp.currentFrame = 0;
-    }
-    else if (customApp.iconName != newIconName)
-    {
+      customApp.icons[0].clear();
       customApp.jpegDataSize = 0;
-      customApp.iconName = newIconName;
-      customApp.icon.close();
+      
+      customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
+    }
+    else if (customApp.icons[0].iconName != newIconName)
+    {
+      customApp.icons[0].clear();
+      customApp.jpegDataSize = 0;
       customApp.iconPosition = 0;
-      customApp.currentFrame = 0;
+
+      customApp.icons[0].iconName = newIconName;
     }
   }
   else
   {
+    customApp.icons[0].clear();
     customApp.jpegDataSize = 0;
-    customApp.icon.close();
-    customApp.iconName = "";
     customApp.iconPosition = 0;
-    customApp.currentFrame = 0;
   }
 
   customApp.gradient[0] = -1;
@@ -1169,12 +1165,11 @@ void ResetCustomApps()
     if (app.name != currentCustomApp)
     {
       app.iconWasPushed = false;
-      app.scrollposition = (app.icon ? 9 : 0) + app.textOffset;
+      app.scrollposition = (app.icons[0].isValid() ? 9 : 0) + app.textOffset;
       app.iconPosition = 0;
       app.scrollDelay = 0;
       app.currentRepeat = 0;
-      app.icon.close();
-      app.currentFrame = 0;
+      app.icons[0].reset();
     }
   }
 }
@@ -2322,7 +2317,7 @@ String DisplayManager_::getAppsWithIcon()
     CustomApp *customApp = getCustomAppByName(app.first);
     if (customApp != nullptr)
     {
-      appObject["icon"] = customApp->iconName;
+      appObject["icon"] = customApp->icons[0].iconName;
     }
   }
   String jsonString;
@@ -2363,7 +2358,7 @@ void DisplayManager_::reorderApps(const String &jsonString)
   ui->forceResetState();
 }
 
-void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions)
+void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions, CustomApp* customapp, GifPlayer* gifplayerarr)
 {
   DynamicJsonDocument doc(8192);
   DeserializationError error = deserializeJson(doc, drawInstructions);
@@ -2478,46 +2473,54 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
           }
         }
       }
-      else if (command == "di")
+      else if (command == "di" && customapp)
       {
         int x = params[0].as<int>();
         int y = params[1].as<int>();
+        String file = params[2].as<String>();
 
-        ESP_LOGE("draw", "di(%i:%i) %s", x, y, params[2].as<String>().c_str());
+        IconContainer * icc = NULL;
+        GifPlayer* gp = NULL;
 
+        int t;
+        for(t = 1; t < MAX_ICONS_PER_APP; t++) 
         {
-          const char *extensions[] = {".jpg", ".gif"};
-          bool isGifFlags[] = {false, true};
-
-          static bool isGif = false;
-          static fs::File icon;
-          static uint8_t currentFrame = 0;
-
-          if(! icon)
+          if(customapp->icons[t].iconName == file)
           {
-            for (int i = 0; i < 2; i++)
+            icc = &customapp->icons[t];
+            gp = &gifplayerarr[t];
+            break;
+          }
+        }
+        if(icc == NULL)
+        {
+          for(t = 1; t < MAX_ICONS_PER_APP; t++) 
+          {
+            if(customapp->icons[t].isValid() == false)
             {
-                String filePath = "/ICONS/" + params[2].as<String>() + extensions[i];
-                if (LittleFS.exists(filePath))
-                {
-                    isGif = isGifFlags[i];
-                    icon = LittleFS.open(filePath);
-                    currentFrame = 0;
-                    break;
-                }
+              icc = &customapp->icons[t];
+              icc->iconName = file;
+              gp = &gifplayerarr[t];
+              if(icc->load() == false)
+              {
+                icc->clear();
+                icc = NULL;
+              }
+              break;
             }
           }
+        }  
 
-          if (isGif)
+        if(icc)
+        {
+          if (icc->isGif)
           {
-              static GifPlayer gifp;
-              gifp.setMatrix(matrix);
-              gifp.playGif(x, y, &icon, currentFrame);
-              currentFrame = gifp.getFrame();
+              gp->playGif(x + xOffset, y + yOffset, &icc->icon, icc->currentFrame);
+              icc->currentFrame = gp->getFrame();
           }
           else
           {
-            DisplayManager.drawJPG(x, y, icon);
+            DisplayManager.drawJPG(x + xOffset, y + yOffset, icc->icon);
           }
         }
       }

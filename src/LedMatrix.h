@@ -1,13 +1,8 @@
 #ifndef LEDMATRIX_H
 #define LEDMATRIX_H
 
-/*
-class GenericLedMatrixIF
-{
-public:
-    virtual ~GenericLedMatrixIF() {}
-};
-*/
+#define MAX_ICONS_PER_APP 4
+
 #ifdef USE_HUB75
     #define MATRIX_WIDTH 64 
     #define MATRIX_HEIGHT 32

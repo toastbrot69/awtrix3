@@ -31,8 +31,8 @@
 #include "Globals.h"
 #include "effects.h"
 
-GifPlayer gif1;
-GifPlayer gif2;
+GifPlayer gif1[MAX_ICONS_PER_APP];
+GifPlayer gif2[MAX_ICONS_PER_APP];
 
 MatrixDisplayUi::MatrixDisplayUi(GenericLedMatrixIF *matrix)
 {
@@ -44,8 +44,12 @@ void MatrixDisplayUi::init()
   this->matrix->begin();
   this->matrix->setTextWrap(false);
   this->matrix->setBrightness(70);
-  gif1.setMatrix(this->matrix);
-  gif2.setMatrix(this->matrix);
+
+  for(int t = 0; t < MAX_ICONS_PER_APP; t++)
+  {
+    gif1[t].setMatrix(this->matrix);
+    gif2[t].setMatrix(this->matrix);
+  }
 }
 
 void MatrixDisplayUi::setTargetFPS(uint8_t fps)
@@ -421,7 +425,7 @@ void MatrixDisplayUi::drawApp()
       currentTransition = TRANS_EFFECT; // Wenn TRANS_EFFECT nicht RANDOM ist, setzen Sie currentTransition auf TRANS_EFFECT
     }
 
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
     swapped = true;
     break;
   }
@@ -462,7 +466,7 @@ void MatrixDisplayUi::drawOverlays()
 {
   for (uint8_t i = 0; i < this->overlayCount; i++)
   {
-    (this->overlayFunctions[i])(this->matrix, &this->state, &gif2);
+    (this->overlayFunctions[i])(this->matrix, &this->state, gif2);
   }
 }
 
@@ -575,12 +579,12 @@ void MatrixDisplayUi::fadeTransition()
   // If fading out the old app
   if (progress < 0.5)
   {
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
   }
   else
   {
     // Otherwise fading in the new app
-    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, gif2);
   }
 
   for (int i = 0; i < MATRIX_WIDTH; i++)
@@ -619,8 +623,8 @@ void MatrixDisplayUi::slideTransition()
   y *= dir;
   x1 *= dir;
   y1 *= dir;
-  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, x, y, &gif1);
-  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, x1, y1, &gif2);
+  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, x, y, gif1);
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, x1, y1, gif2);
 }
 
 void MatrixDisplayUi::curtainTransition()
@@ -632,7 +636,7 @@ void MatrixDisplayUi::curtainTransition()
   if (this->state.ticksSinceLastStateSwitch == 1 || this->state.ticksSinceLastStateSwitch == 0)
   {
     // Kopieren Sie die aktuelle App-Ansicht in ledsCopy
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
     for (int i = 0; i < MATRIX_WIDTH; i++)
     {
       for (int j = 0; j < MATRIX_HEIGHT; j++)
@@ -642,7 +646,7 @@ void MatrixDisplayUi::curtainTransition()
     }
   }
   // Zeichnen Sie die neue App-Ansicht
-  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, gif2);
 
   // Anwenden des Vorhang-Effekts basierend auf dem Fortschritt
   for (int i = 0; i < MATRIX_WIDTH; i++)
@@ -665,13 +669,13 @@ void MatrixDisplayUi::zoomTransition()
   if (progress < 0.5)
   {
     scale = 1 - progress * 2; // scale will change from 1.0 to 0.0
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
   }
   else
   {
     // Otherwise zooming in the new app
     scale = (progress - 0.5) * 2; // scale will change from 0.0 to 1.0
-    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, gif2);
   }
 
   // Copy the data to the temporary array ledsCopy
@@ -713,12 +717,12 @@ void MatrixDisplayUi::rotateTransition()
   if (progress < 0.5)
   {
     // Rotate out the old app (progress from 0 to 0.5)
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
   }
   else
   {
     // Rotate in the new app (progress from 0.5 to 1.0)
-    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, gif2);
   }
 
   // Copy the data to the temporary array ledsCopy
@@ -758,7 +762,7 @@ void MatrixDisplayUi::pixelateTransition()
   float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
 
   // Draw the old app and copy to ledsCopy
-  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
   for (int i = 0; i < MATRIX_WIDTH; i++)
   {
     for (int j = 0; j < MATRIX_HEIGHT; j++)
@@ -769,7 +773,7 @@ void MatrixDisplayUi::pixelateTransition()
 
   // Clear the screen and draw the new app
   this->matrix->clear();
-  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, gif2);
 
   // Apply the random pixel swap transition effect
   for (int i = 0; i < MATRIX_WIDTH; i++)
@@ -791,7 +795,7 @@ void MatrixDisplayUi::rippleTransition()
   float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
 
   // Draw the old app and copy to ledsCopy
-  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
   for (int i = 0; i < MATRIX_WIDTH; i++)
   {
     for (int j = 0; j < MATRIX_HEIGHT; j++)
@@ -802,7 +806,7 @@ void MatrixDisplayUi::rippleTransition()
 
   // Clear the screen and draw the new app
   this->matrix->clear();
-  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, gif2);
 
   // Apply the checkerboard transition effect
   for (int i = 0; i < MATRIX_WIDTH; i++)
@@ -840,11 +844,11 @@ void MatrixDisplayUi::blinkTransition()
     // If blinkState is true, draw the old app if progress is less than 0.5, otherwise draw the new app
     if (progress < 0.5)
     {
-      (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+      (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
     }
     else
     {
-      (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+      (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, gif2);
     }
   }
   else
@@ -862,7 +866,7 @@ void MatrixDisplayUi::reloadTransition()
   if (progress < 0.5)
   {
 
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
 
     // Calculating pixel to be visible based on progress
     visiblePixel = MATRIX_WIDTH * (1.0 - (progress * 2));
@@ -881,7 +885,7 @@ void MatrixDisplayUi::reloadTransition()
   else
   {
     // Draw the new app and let the pixels fly in
-    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, gif2);
 
     // Calculating pixel to be visible based on progress
     visiblePixel = MATRIX_WIDTH * ((progress - 0.5) * 2);
@@ -904,7 +908,7 @@ void MatrixDisplayUi::crossfadeTransition()
   float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
 
   // Draw the old app
-  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
 
   // Copy the old app data to ledsCopy array
   for (int i = 0; i < MATRIX_WIDTH; i++)
@@ -919,7 +923,7 @@ void MatrixDisplayUi::crossfadeTransition()
   this->matrix->fillScreen(0);
 
   // Draw the new app
-  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, gif2);
 
   // Linearly interpolate between old and new pixel colors based on the progress
   for (int i = 0; i < MATRIX_WIDTH; i++)

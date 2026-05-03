@@ -171,7 +171,7 @@ void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifP
 
         if (notifications[0].drawInstructions.length() > 0)
         {
-            DisplayManager.processDrawInstructions(0, 0, notifications[0].drawInstructions);
+            DisplayManager.processDrawInstructions(0, 0, notifications[0].drawInstructions, NULL, gifPlayer);
         }
 
         if (notifications[0].barSize > 0)

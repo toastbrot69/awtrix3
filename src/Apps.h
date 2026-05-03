@@ -13,19 +13,80 @@ public:
         currentFrame = 0;
         isGif=false;
     }
-    uint8_t currentFrame;
-    String iconName;
+    IconContainer(const IconContainer& src)
+    {
+        operator=(src);
+    }
+    virtual ~IconContainer()
+    {}
 
-    File icon;
-    bool isGif;
-}
+    bool load(void)
+    {
+        if(icon || iconName.length() == 0)
+            return false;
+        
+        isGif=false;
+        currentFrame = 0;
+        icon.close();
+
+        const char *extensions[] = {".jpg", ".gif"};
+        bool isGifFlags[] = {false, true};
+
+        for (int i = 0; i < 2; i++)
+        {
+            String filePath = "/ICONS/" + iconName + extensions[i];
+            if (LittleFS.exists(filePath))
+            {
+                isGif = isGifFlags[i];
+                icon = LittleFS.open(filePath);
+                currentFrame = 0;
+
+                ESP_LOGE("icons", "icon(%s) loaded %s", filePath.c_str(), icon ? "OK":"FAIL");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void reset(void)
+    {
+        currentFrame = 0;
+        icon.close();
+    }
+
+    void clear(void)
+    {
+        isGif=false;
+        currentFrame = 0;
+        iconName.clear();
+        icon.close();
+    }
+
+    bool isValid(void) const { 
+        //ESP_LOGE("icons", "isvalid(%s): %s", iconName.c_str(), icon ? "yes":"no");
+        return icon; }
+
+    IconContainer& operator=(const IconContainer& src)
+    {
+        iconName = src.iconName;
+
+        icon = src.icon;
+        isGif = src.isGif;
+        currentFrame = src.currentFrame;
+        return *this;
+    }
+
+    String  iconName;
+
+    File    icon;
+    bool    isGif;
+    uint8_t currentFrame;
+};
 
 struct CustomApp
 {
     int bounceDir = 0;
     bool hasCustomColor = false;
-    uint8_t currentFrame = 0;
-    String iconName;
     String drawInstructions;
     float scrollposition = 0;
     int16_t scrollDelay = 0;
@@ -33,8 +94,6 @@ struct CustomApp
     String text;
     bool bounce = false;
     uint32_t color;
-    File icon;
-    bool isGif;
     bool rainbow;
     bool center;
     int fade = 0;
@@ -71,6 +130,8 @@ struct CustomApp
     bool lifeTimeEnd = false;
     uint8_t jpegDataBuffer[1000];
     unsigned int jpegDataSize = 0;
+
+    IconContainer   icons[MAX_ICONS_PER_APP];
 };
 
 extern std::vector<std::pair<String, AppCallback>> Apps;
