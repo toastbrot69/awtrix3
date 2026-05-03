@@ -102,10 +102,10 @@ const char *getTimeFormat()
     }
 }
 
-void TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
-        return;
+        return 8;
     CURRENT_APP = "Time";
     currentCustomApp = "";
     const char *timeformat = getTimeFormat();
@@ -153,7 +153,7 @@ void TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x,
         matrix->drawFastHLine(0 + x, 7 + y, MATRIX_WIDTH, 0);
         matrix->drawFastVLine(6 + x, 0 + y, 7, 0);
         matrix->drawFastVLine(MATRIX_WIDTH-7 + x, 0 + y, 7, 0);
-        return;
+        return 8;
     }
     else if (TIME_MODE == 6)
     {
@@ -200,7 +200,7 @@ void TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x,
             drawBit(bitValue, x1 + x, y1 + y, COLOR_SECOND_ON, COLOR_OFF);
         }
 
-        return;
+        return 8;
     }
 
     if (TIME_COLOR > 0)
@@ -281,7 +281,7 @@ void TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x,
     }
 
     if (!SHOW_WEEKDAY)
-        return;
+        return 8;
 
     // line of week days
     uint8_t LINE_WIDTH = TIME_MODE > 0 ? 2 : 3;
@@ -301,12 +301,13 @@ void TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x,
 
         DisplayManager.drawLine(lineStart + x, wdPosY + y, lineEnd + x, wdPosY + y, color);
     }
+    return 8;
 }
 
-void DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
-        return;
+        return 8;
     CURRENT_APP = "Date";
     currentCustomApp = "";
     if (DATE_COLOR > 0)
@@ -321,7 +322,7 @@ void DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x,
     strftime(d, sizeof(d), DATE_FORMAT.c_str(), timer_localtime());
     DisplayManager.printText(0 + x, 6 + y, d, true, 2);
     if (!SHOW_WEEKDAY)
-        return;
+        return 8;
     int dayOffset = START_ON_MONDAY ? 0 : 1;
     for (int i = 0; i <= 6; i++)
     {
@@ -334,12 +335,13 @@ void DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x,
             DisplayManager.drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_INACTIVE);
         }
     }
+    return 8;
 }
 
-void TempApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t TempApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
-        return;
+        return 8;
     CURRENT_APP = "Temperature";
     currentCustomApp = "";
     if (TEMP_COLOR > 0)
@@ -368,12 +370,13 @@ void TempApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x,
         DisplayManager.matrixPrint(tempF, TEMP_DECIMAL_PLACES);
         DisplayManager.matrixPrint(utf8ascii("°F"));
     }
+    return 8;
 }
 
-void HumApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t HumApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
-        return;
+        return 8;
     CURRENT_APP = "Humidity";
     currentCustomApp = "";
     if (HUM_COLOR > 0)
@@ -389,13 +392,15 @@ void HumApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, 
     int humidity = CURRENT_HUM;
     DisplayManager.matrixPrint(humidity, 0);
     DisplayManager.matrixPrint("%");
+
+    return 8;
 }
 
 #ifndef awtrix2_upgrade
-void BatApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t BatApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
-        return;
+        return 8;
     CURRENT_APP = "Battery";
     currentCustomApp = "";
     if (BAT_COLOR > 0)
@@ -410,6 +415,7 @@ void BatApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, 
     DisplayManager.setCursor(14 + x, 6 + y);
     DisplayManager.matrixPrint(BATTERY_PERCENT, 0); // Ausgabe des Ladezustands
     DisplayManager.matrixPrint("%");
+    return 8;
 }
 #endif
 
@@ -431,12 +437,12 @@ String replacePlaceholders(String text)
     return text;
 }
 
-void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     // Abort if notifyFlag is set
     if (notifyFlag)
     {
-        return;
+        return 0;
     }
 
     // Get custom App by ID
@@ -445,7 +451,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
     // Abort if custom App not found
     if (ca == nullptr)
     {
-        return;
+        return 0;
     }
 
     if (!DisplayManager.appIsSwitching)
@@ -589,7 +595,7 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
                 DisplayManager.nextApp();
                 ca->scrollDelay = 0;
                 ca->scrollposition = 9 + ca->textOffset;
-                return;
+                return ca->height;
             }
             else if (ca->repeat > 0)
             {
@@ -728,128 +734,130 @@ void ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState
     }
 
     DisplayManager.getInstance().resetTextColor();
+
+    return ca->height;
 }
 
 // Unattractive to have a function for every customapp wich does the same, but currently still no other option found TODO
 
-void CApp1(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp1(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp1);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp2(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp2(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp2);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp3(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp3(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp3);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp4(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp4(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp4);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp5(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp5(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp5);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp6(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp6(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp6);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp7(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp7(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp7);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp8(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp8(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp8);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp9(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp9(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp9);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp10(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp10(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp10);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp11(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp11(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp11);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp12(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp12(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp12);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp13(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp13(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp13);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp14(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp14(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp14);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp15(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp15(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp15);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp16(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp16(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp16);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp17(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp17(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp17);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp18(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp18(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp18);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp19(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp19(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp19);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void CApp20(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t CApp20(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp20);
-    ShowCustomApp(name, matrix, state, x, y, gifPlayer);
+    return ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-void (*customAppCallbacks[20])(GenericLedMatrixIF *, MatrixDisplayUiState *, int16_t, int16_t, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
+uint32_t (*customAppCallbacks[20])(GenericLedMatrixIF *, MatrixDisplayUiState *, int16_t, int16_t, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};

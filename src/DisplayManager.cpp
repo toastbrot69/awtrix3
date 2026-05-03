@@ -609,6 +609,15 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     }
   }
 
+  if (doc.containsKey("height"))
+  {
+    customApp.height = doc["height"].as<uint32_t>();
+  }
+  else
+  {
+    customApp.height = 8;
+  }
+
   if (doc.containsKey("draw"))
   {
     customApp.drawInstructions = doc["draw"].as<String>();

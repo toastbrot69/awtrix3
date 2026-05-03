@@ -4,6 +4,7 @@
  * Copyright (c) 2016 by Daniel Eichhorn
  * Copyright (c) 2016 by Fabrice Weinberg
  * Copyright (c) 2023 by Stephan Muehl (Blueforcer)
+ * Copyright (c) 2023 by Thorsten Pohlmann (toastbrot69): Varibale screen size and mult-icon/gif
  * Note: This old lib for SSD1306 displays has been extremely
  * modified for AWTRIX 3 and has nothing to do with the original purposes.
  *
@@ -361,6 +362,8 @@ TransitionType getRandomTransition()
 
 bool swapped = false;
 
+#include "Apps.h"
+
 void MatrixDisplayUi::drawApp()
 {
   switch (this->state.appState)
@@ -425,7 +428,19 @@ void MatrixDisplayUi::drawApp()
       currentTransition = TRANS_EFFECT; // Wenn TRANS_EFFECT nicht RANDOM ist, setzen Sie currentTransition auf TRANS_EFFECT
     }
 
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, gif1);
+
+    uint32_t used_h = 0;
+    uint32_t curr_app = this->state.currentApp;
+
+    CustomApp *ca = getCustomAppByName(getAppNameByFunction(this->AppFunctions[curr_app]));
+
+    while(used_h < MATRIX_HEIGHT && (ca == NULL || ((used_h + ca->height) <= MATRIX_HEIGHT)))
+    {
+      uint32_t h = (this->AppFunctions[curr_app])(this->matrix, &this->state, 0, used_h, gif1);
+      used_h += h;
+      curr_app = (curr_app + AppCount + 1) % AppCount;
+      ca = getCustomAppByName(getAppNameByFunction(this->AppFunctions[curr_app]));
+    }
     swapped = true;
     break;
   }

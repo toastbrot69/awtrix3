@@ -83,7 +83,8 @@ struct MatrixDisplayUiState
   void *userData = NULL;
 };
 
-typedef void (*AppCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
+// return: height of app
+typedef uint32_t (*AppCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 typedef void (*OverlayCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
 typedef void (*BackgroundCallback)(GenericLedMatrixIF *matrix);
 
