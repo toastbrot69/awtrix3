@@ -40,10 +40,6 @@ int previousDataLength = 0;
 #define MATRIX_PIN 32
 #endif
 
-fs::File gifFile;
-GifPlayer gif;
-
-uint16_t gifX, gifY;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 CRGB ledsCopy[MATRIX_WIDTH * MATRIX_HEIGHT];
 float actualBri;
@@ -284,19 +280,19 @@ void DisplayManager_::GradientText(int16_t x, int16_t y, const char *text, int c
     matrix->show();
 }
 
-void pushCustomApp(String name, int position)
+void pushCustomApp(CustomApp& ca, int position)
 {
-  if (customApps.count(name) == 0)
+  if (customApps.count(ca.name) == 0)
   {
     int availableCallbackIndex = -1;
 
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < CUSTOMAPP_COUNT; ++i)
     {
       bool callbackUsed = false;
 
       for (const auto &appPair : Apps)
       {
-        if (appPair.second == customAppCallbacks[i])
+        if (appPair.second == &customAppMem[i])
         {
           callbackUsed = true;
           break;
@@ -319,16 +315,19 @@ void pushCustomApp(String name, int position)
 
     if (position < 0) // Insert at the end of the vector
     {
-      Apps.push_back(std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
+      Apps.push_back(std::make_pair(ca.name, &customAppMem[availableCallbackIndex]));
     }
     else if (position < Apps.size()) // Insert at a specific position
     {
-      Apps.insert(Apps.begin() + position, std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
+      Apps.insert(Apps.begin() + position, std::make_pair(ca.name, &customAppMem[availableCallbackIndex]));
     }
     else // Invalid position, Insert at the end of the vector
     {
-      Apps.push_back(std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
+      Apps.push_back(std::make_pair(ca.name, &customAppMem[availableCallbackIndex]));
     }
+
+    customAppMem[availableCallbackIndex] = ca;
+    customApps[ca.name] = &customAppMem[availableCallbackIndex];
 
     ui->setApps(Apps); // Add Apps
     DisplayManager.getInstance().setAutoTransition(true);
@@ -488,8 +487,10 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   if (customApps.find(name) != customApps.end())
   {
-    customApp = customApps[name];
+    customApp = *customApps[name];
   }
+
+  customApp.name = name;
 
   customApp.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
 
@@ -753,8 +754,10 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
   customApp.lastUpdate = millis();
   customApp.lifeTimeEnd = false;
   doc.clear();
-  pushCustomApp(name, pos - 1);
-  customApps[name] = customApp;
+
+  pushCustomApp(customApp, pos - 1);
+
+  DEBUG_PRINTF("pushCustomApp(%s) %s\r\n", name.c_str(), customApps[name]->name.c_str());
 
   return true;
 }
@@ -1082,10 +1085,11 @@ void DisplayManager_::loadCustomApps()
 void DisplayManager_::loadNativeApps()
 {
   // Define a helper function to check and update an app
-  auto updateApp = [&](const String &name, AppCallback callback, bool show, size_t position)
+
+  auto updateApp = [&](NativeApp& native, bool show, size_t position)
   {
-    auto it = std::find_if(Apps.begin(), Apps.end(), [&](const std::pair<String, AppCallback> &app)
-                           { return app.first == name; });
+    auto it = std::find_if(Apps.begin(), Apps.end(), [&](const std::pair<String, app_base*> &app)
+                           { return app.first == native.name; });
     if (it != Apps.end())
     {
       if (!show)
@@ -1099,26 +1103,33 @@ void DisplayManager_::loadNativeApps()
       {
         if (position >= Apps.size())
         {
-          Apps.push_back(std::make_pair(name, callback));
+          Apps.push_back(std::make_pair(native.name, &native));
         }
         else
         {
-          Apps.insert(Apps.begin() + position, std::make_pair(name, callback));
+          Apps.insert(Apps.begin() + position, std::make_pair(native.name, &native));
         }
       }
     }
   };
 
-  updateApp("Time", TimeApp, SHOW_TIME, 0);
-  updateApp("Date", DateApp, SHOW_DATE, 1);
+  extern NativeApp nativeTimeApp;
+  updateApp(nativeTimeApp, SHOW_TIME, 0);
+
+  extern NativeApp nativeDateApp;
+  updateApp(nativeDateApp, SHOW_DATE, 1);
 
   if (SENSOR_READING)
   {
-    updateApp("Temperature", TempApp, SHOW_TEMP, 2);
-    updateApp("Humidity", HumApp, SHOW_HUM, 3);
+    extern NativeApp nativeTempApp;
+    updateApp(nativeTempApp, SHOW_TEMP, 2);
+
+    extern NativeApp nativeHumApp;
+    updateApp(nativeHumApp, SHOW_HUM, 3);
   }
 #ifdef ULANZI
-  updateApp("Battery", BatApp, SHOW_BAT, 4);
+  extern NativeApp nativeBatApp;
+  updateApp(nativeBatApp, SHOW_BAT, 4);
 #endif
 
   ui->setApps(Apps);
@@ -1149,7 +1160,6 @@ void DisplayManager_::setup()
     }
   #endif
 
-  gif.setMatrix(matrix);
   ui->setAppAnimation(SLIDE_DOWN);
 
   ui->setTargetFPS(MATRIX_FPS);
@@ -1170,7 +1180,7 @@ void ResetCustomApps()
 
   for (auto it = customApps.begin(); it != customApps.end(); ++it)
   {
-    CustomApp &app = it->second;
+    CustomApp &app = *it->second;
     if (app.name != currentCustomApp)
     {
       app.iconWasPushed = false;
@@ -1200,7 +1210,7 @@ void checkLifetime(uint8_t pos)
 
   if (appIt != customApps.end())
   {
-    CustomApp &app = appIt->second;
+    CustomApp &app = *appIt->second;
 
     if (app.lifetime > 0 && (millis() - app.lastUpdate) / 1000 >= app.lifetime)
     {
@@ -1541,30 +1551,22 @@ void DisplayManager_::drawLineChart(int16_t x, int16_t y, const int data[], byte
   }
 }
 
-std::pair<String, AppCallback> getNativeAppByName(const String &appName)
+std::pair<String, app_base*> getNativeAppByName(const String &appName)
 {
-  if (appName == "Time")
+  uint32_t ix = 0;
+
+  NativeApp* app = nativeAppList[ix++];
+
+  while(app)
   {
-    return std::make_pair("Time", TimeApp);
-  }
-  else if (appName == "Date")
-  {
-    return std::make_pair("Date", DateApp);
-  }
-  else if (appName == "Temperature")
-  {
-    return std::make_pair("Temperature", TempApp);
-  }
-  else if (appName == "Humidity")
-  {
-    return std::make_pair("Humidity", HumApp);
-  }
-#ifdef ULANZI
-  else if (appName == "Battery")
-  {
-    return std::make_pair("Battery", BatApp);
-  }
-#endif
+    if(app->name == appName)  
+    {
+      return std::make_pair(appName, app);
+    }
+
+    app = nativeAppList[ix++];
+  };
+
   return std::make_pair("", nullptr);
 }
 
@@ -1602,10 +1604,8 @@ void DisplayManager_::updateAppVector(const char *json)
     bool show = appObj["show"].as<bool>();
     int position = appObj.containsKey("pos") ? appObj["pos"].as<int>() : Apps.size();
 
-    auto appIt = std::find_if(Apps.begin(), Apps.end(), [&appName](const std::pair<String, AppCallback> &app)
+    auto appIt = std::find_if(Apps.begin(), Apps.end(), [&appName](const std::pair<String, app_base*> &app)
                               { return app.first == appName; });
-
-    std::pair<String, AppCallback> nativeApp = getNativeAppByName(appName);
 
     if (!show)
     {
@@ -1616,6 +1616,8 @@ void DisplayManager_::updateAppVector(const char *json)
     }
     else
     {
+      std::pair<String, app_base*> nativeApp = getNativeAppByName(appName);
+
       if (nativeApp.second != nullptr)
       {
         if (appIt != Apps.end())
@@ -1630,7 +1632,7 @@ void DisplayManager_::updateAppVector(const char *json)
       {
         if (appIt != Apps.end() && appObj.containsKey("pos"))
         {
-          std::pair<String, AppCallback> app = *appIt;
+          std::pair<String, app_base*> app = *appIt;
           Apps.erase(appIt);
           position = position < 0 ? 0 : position >= Apps.size() ? Apps.size()
                                                                 : position;
@@ -2282,7 +2284,7 @@ void DisplayManager_::setCustomAppColors(uint32_t color)
 {
   for (auto it = customApps.begin(); it != customApps.end(); ++it)
   {
-    CustomApp &app = it->second;
+    CustomApp &app = *it->second;
     if (!app.hasCustomColor)
     {
       app.color = color;
@@ -2297,7 +2299,6 @@ String DisplayManager_::ledsAsJson()
   #else
     StaticJsonDocument<JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT)> jsonDoc;
   #endif
-  
 
   JsonArray jsonColors = jsonDoc.to<JsonArray>();
   for (int y = 0; y < MATRIX_HEIGHT; y++)
@@ -2311,6 +2312,9 @@ String DisplayManager_::ledsAsJson()
   }
   String jsonString;
   serializeJson(jsonColors, jsonString);
+
+  DEBUG_PRINTF("ledsAsJson(): %u\n", jsonString.length());
+
   return jsonString;
 }
 
@@ -2350,7 +2354,7 @@ void DisplayManager_::reorderApps(const String &jsonString)
   }
 
   JsonArray jsonArray = jsonDocument.as<JsonArray>();
-  std::vector<std::pair<String, AppCallback>> reorderedApps;
+  std::vector<std::pair<String, app_base*>> reorderedApps;
   for (const String &appName : jsonArray)
   {
     for (const auto &app : Apps)

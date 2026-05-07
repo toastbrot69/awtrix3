@@ -189,7 +189,40 @@ void addHandler()
     mws.addHandler("/api/stats", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
     mws.addHandler("/api/screen", HTTP_GET, []()
-                   { mws.webserver->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
+                   {
+                    #if 1
+                        mws.webserver->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); 
+                    #else
+                        String tmp = DisplayManager.ledsAsJson();
+                        uint32_t l = tmp.length();
+
+                        const char* ptr = tmp.c_str();
+
+                        server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                        server.sendHeader("Pragma", "no-cache");
+                        server.sendHeader("Expires", "-1");
+                        server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+                        // here begin chunked transfer
+                        server.send(200, "application/json", "");
+
+                        DEBUG_PRINTF("screen: %u\r\n", l);
+
+                        while(l>0)
+                        {
+                            uint32_t cpy = l;
+                            if(cpy > 1024)
+                                cpy = 1024;
+
+                                DEBUG_PRINTF(" %u (%u)\r\n", cpy, l);
+
+                            server.sendContent(ptr, cpy); 
+                            l -= cpy;
+                            ptr += cpy;
+                        }
+
+                        server.client().stop();
+                    #endif                        
+                    });
     mws.addHandler("/api/indicator1", HTTP_POST, []()
                    { 
                     if (DisplayManager.indicatorParser(1,mws.webserver->arg("plain").c_str())){

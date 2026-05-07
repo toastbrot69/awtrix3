@@ -38,15 +38,15 @@ int WEATHER_CODE;
 String WEATHER_TEMP;
 String WEATHER_HUM;
 
-std::vector<std::pair<String, AppCallback>> Apps;
+std::vector<std::pair<String, app_base*>> Apps;
 String currentCustomApp;
-std::map<String, CustomApp> customApps;
+std::map<String, CustomApp*> customApps;
 
 CustomApp *getCustomAppByName(String name)
 {
-    return customApps.count(name) ? &customApps[name] : nullptr;
+    return customApps.count(name) ? customApps[name] : nullptr;
 }
-
+/*
 String getAppNameByFunction(AppCallback AppFunction)
 {
     for (const auto &appPair : Apps)
@@ -59,7 +59,7 @@ String getAppNameByFunction(AppCallback AppFunction)
 
     return "";
 }
-
+*/
 String getAppNameAtIndex(int index)
 {
     if (index >= 0 && index < Apps.size())
@@ -74,7 +74,8 @@ String getAppNameAtIndex(int index)
 
 int findAppIndexByName(const String &name)
 {
-    auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
+    //auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
+    auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, app_base*> &appPair)
                            { return appPair.first == name; });
     if (it != Apps.end())
     {
@@ -437,19 +438,12 @@ String replacePlaceholders(String text)
     return text;
 }
 
-uint32_t ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t ShowCustomApp(CustomApp* ca, GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
+    //DEBUG_PRINTF("ShowCustomApp(%s) %i.%i\r\n", ca->name.c_str(), x, y);
+
     // Abort if notifyFlag is set
     if (notifyFlag)
-    {
-        return 0;
-    }
-
-    // Get custom App by ID
-    CustomApp *ca = getCustomAppByName(name);
-
-    // Abort if custom App not found
-    if (ca == nullptr)
     {
         return 0;
     }
@@ -470,7 +464,7 @@ uint32_t ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiS
     }
 
     CURRENT_APP = ca->name;
-    currentCustomApp = name;
+    currentCustomApp = ca->name;
 
     bool hasIcon = ca->jpegDataSize > 0 || ca->icons[0].load();
 
@@ -730,6 +724,7 @@ uint32_t ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiS
     return ca->height;
 }
 
+/*
 // Unattractive to have a function for every customapp wich does the same, but currently still no other option found TODO
 
 uint32_t CApp1(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
@@ -853,3 +848,40 @@ uint32_t CApp20(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t
 }
 
 uint32_t (*customAppCallbacks[20])(GenericLedMatrixIF *, MatrixDisplayUiState *, int16_t, int16_t, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
+*/
+
+CustomApp  customAppMem[CUSTOMAPP_COUNT];
+
+NativeApp::NativeApp(native_app_t app, String _name)
+{
+    name = _name;
+    height = 8;
+    native_app = app;
+}
+
+void NativeApp::do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+{
+    native_app(matrix, state, x, y, gifPlayer);
+}
+
+NativeApp nativeTimeApp(TimeApp, "Time");
+NativeApp nativeDateApp(DateApp, "Date");
+NativeApp nativeTempApp(TempApp, "Temperature");
+NativeApp nativeHumApp(HumApp, "Humidity");
+
+#ifdef ULANZI
+    NativeApp nativeBatApp(BatApp, "Battery");
+    
+    NativeApp* nativeAppList[] = { &nativeTimeApp, &nativeDateApp, &nativeTempApp, &nativeHumApp, &nativeBatApp, NULL };
+#else
+    NativeApp* nativeAppList[] = { &nativeTimeApp, &nativeDateApp, &nativeTempApp, &nativeHumApp, NULL };
+#endif
+
+
+
+///////////////////////////////////////
+
+void CustomApp::do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+{
+    ::ShowCustomApp(this, matrix, state, x, y, gifPlayer);
+}

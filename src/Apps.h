@@ -99,9 +99,10 @@ public:
     uint8_t currentFrame;
 };
 
-struct CustomApp
+struct CustomApp : app_base
 {
-    uint32_t height=8;
+    virtual void do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer) override;
+
     int bounceDir = 0;
     bool hasCustomColor = false;
     String drawInstructions;
@@ -120,7 +121,6 @@ struct CustomApp
     byte textCase = 0;
     int16_t repeat = 0;
     int16_t currentRepeat = 0;
-    String name;
     OverlayEffect overlay;
     byte pushIcon = 0;
     float iconPosition = 0;
@@ -151,14 +151,22 @@ struct CustomApp
     IconContainer   icons[MAX_ICONS_PER_SCREEN];
 };
 
-extern std::vector<std::pair<String, AppCallback>> Apps;
+extern std::vector<std::pair<String, app_base*>> Apps;
 extern String currentCustomApp;
-extern std::map<String, CustomApp> customApps;
-extern uint32_t (*customAppCallbacks[20])(GenericLedMatrixIF *, MatrixDisplayUiState *, int16_t, int16_t, GifPlayer *);
+extern std::map<String, CustomApp*> customApps;
+//extern uint32_t (*customAppCallbacks[20])(GenericLedMatrixIF *, MatrixDisplayUiState *, int16_t, int16_t, GifPlayer *);
+
+#if defined ESP32_S3 || !defined USE_HUB75
+    #define CUSTOMAPP_COUNT 20
+#else
+    #define CUSTOMAPP_COUNT 4
+#endif     
+
+extern CustomApp customAppMem[CUSTOMAPP_COUNT];
 
 CustomApp *getCustomAppByName(String name);
 
-String getAppNameByFunction(AppCallback AppFunction);
+//String getAppNameByFunction(AppCallback AppFunction);
 
 String getAppNameAtIndex(int index);
 
@@ -166,20 +174,29 @@ int findAppIndexByName(const String &name);
 
 const char *getTimeFormat();
 
+typedef struct NativeApp : app_base
+{
+    typedef uint32_t (*native_app_t)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
+
+    native_app_t native_app;
+
+    NativeApp(native_app_t app, String name);
+
+    virtual void do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer) override;
+}NativeApp;
+
 uint32_t TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
-
 uint32_t DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
-
 uint32_t TempApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
-
 uint32_t HumApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 
-#ifndef awtrix2_upgrade
-uint32_t BatApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
+#ifdef ULANZI
+    uint32_t BatApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 #endif
 
-uint32_t ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
+extern NativeApp* nativeAppList[];
 
+/*
 // Unattractive to have a function for every customapp which does the same, but currently still no other option found TODO
 uint32_t CApp1(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 uint32_t CApp2(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
@@ -201,4 +218,5 @@ uint32_t CApp17(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t
 uint32_t CApp18(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 uint32_t CApp19(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 uint32_t CApp20(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
+*/
 #endif

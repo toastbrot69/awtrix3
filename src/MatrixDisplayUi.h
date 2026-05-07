@@ -84,9 +84,20 @@ struct MatrixDisplayUiState
 };
 
 // return: height of app
-typedef uint32_t (*AppCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
+//typedef uint32_t (*AppCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 typedef void (*OverlayCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
 typedef void (*BackgroundCallback)(GenericLedMatrixIF *matrix);
+
+class app_base
+{
+public:
+    virtual ~app_base() {}
+
+    String   name;
+    uint32_t height=8;
+
+    virtual void do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer) = 0;
+};
 
 class MatrixDisplayUi
 {
@@ -102,7 +113,7 @@ private:
 
   bool setAutoTransition = true;
   bool lastFrameShown;
-  AppCallback *AppFunctions = nullptr;
+  app_base** AppBases = nullptr;
 
   // Internally used to transition to a specific app
   int8_t nextAppNumber = -1;
@@ -203,7 +214,7 @@ public:
   /**
    * Add app drawing functions
    */
-  void setApps(const std::vector<std::pair<String, AppCallback>> &appPairs);
+  void setApps(const std::vector<std::pair<String, app_base*>> &appPairs);
 
   // Overlay
   void forceResetState();
