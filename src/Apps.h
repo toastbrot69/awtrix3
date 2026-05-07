@@ -132,7 +132,7 @@ struct CustomApp
     uint8_t jpegDataBuffer[1000];
     unsigned int jpegDataSize = 0;
 
-    IconContainer   icons[MAX_ICONS_PER_APP];
+    IconContainer   icons[MAX_ICONS_PER_SCREEN];
 };
 
 extern std::vector<std::pair<String, AppCallback>> Apps;

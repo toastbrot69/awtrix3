@@ -32,8 +32,10 @@
 #include "Globals.h"
 #include "effects.h"
 
-GifPlayer gif1[MAX_ICONS_PER_APP];
-GifPlayer gif2[MAX_ICONS_PER_APP];
+GifPlayer gif1[MAX_ICONS_PER_SCREEN];
+GifPlayer gif2[MAX_ICONS_PER_SCREEN];
+
+IMPLEMENT_GIFPLAYER()
 
 MatrixDisplayUi::MatrixDisplayUi(GenericLedMatrixIF *matrix)
 {
@@ -46,7 +48,7 @@ void MatrixDisplayUi::init()
   this->matrix->setTextWrap(false);
   this->matrix->setBrightness(70);
 
-  for(int t = 0; t < MAX_ICONS_PER_APP; t++)
+  for(int t = 0; t < MAX_ICONS_PER_SCREEN; t++)
   {
     gif1[t].setMatrix(this->matrix);
     gif2[t].setMatrix(this->matrix);

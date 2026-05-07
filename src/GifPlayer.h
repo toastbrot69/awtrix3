@@ -1,6 +1,7 @@
 #ifndef GifPlayer_H
 #define GifPlayer_H
 #include <LittleFS.h>
+
 class GifPlayer
 {
 public:
@@ -10,20 +11,20 @@ public:
 #define ERROR_BADGIFFORMAT 3
 #define ERROR_UNKNOWNCONTROLEXT 4
 #define ERROR_FINISHED 5
-#define WIDTH 8
+#define WIDTH 32
 #define HEIGHT 8
   uint8_t currentFrame;
 
 private:
   long lastFrameTime;
   int newframeDelay;
-  CRGB FrameBuffer[HEIGHT][WIDTH];
+  //CRGB FrameBuffer[HEIGHT][WIDTH];
   bool lastFrameDrawn = false;
   unsigned long nextFrameTime = 0;
 #define GIFHDRTAGNORM "GIF87a"
 #define GIFHDRTAGNORM1 "GIF89a"
 #define GIFHDRSIZE 6
-  GenericLedMatrixIF *mtx;
+  GenericLedMatrixIF* mtx;
 #define COLORTBLFLAG 0x80
 #define INTERLACEFLAG 0x40
 #define TRANSPARENTFLAG 0x01
@@ -67,8 +68,8 @@ public:
   int rectHeight;
   int colorCount;
   _RGB gifPalette[256];
-  byte lzwImageData[1280];
-  char tempBuffer[260];
+  static byte lzwImageData[1280];
+  static char tempBuffer[260];
   File file;
   byte imageData[WIDTH * HEIGHT];
   byte imageDataBU[WIDTH * HEIGHT];
@@ -238,7 +239,7 @@ public:
 
     if ((prevDisposalMethod != DISPOSAL_NONE) && (prevDisposalMethod != DISPOSAL_LEAVE))
     {
-      memset(FrameBuffer, 0, sizeof(FrameBuffer));
+      memset(imageData, prevBackgroundIndex, sizeof(imageData));
     }
 
     if (prevDisposalMethod == DISPOSAL_BACKGROUND)
@@ -298,12 +299,10 @@ public:
     redrawLastFrame();
     transparentColorIndex = NO_TRANSPARENT_INDEX;
     disposalMethod = DISPOSAL_NONE;
-    if (frameDelay < 1)
-    {
-      frameDelay = 1;
-    }
-    newframeDelay = frameDelay * 10;
-    return frameDelay * 10;
+
+    newframeDelay = frameDelay;
+
+    return newframeDelay;
   }
 
 #define LZW_MAXBITS 10
@@ -330,9 +329,9 @@ public:
   int fc, oc;
   int bs; // Current buffer size for GIF
   byte *sp;
-  byte stack[LZW_SIZTABLE];
-  byte suffix[LZW_SIZTABLE];
-  unsigned int prefix[LZW_SIZTABLE];
+  static byte stack[LZW_SIZTABLE];
+  static byte suffix[LZW_SIZTABLE];
+  static unsigned int prefix[LZW_SIZTABLE];
 
   void lzw_decode_init(int csize, byte *buf)
   {
@@ -450,7 +449,7 @@ public:
   {
     for (int y = 0; y < lsdHeight; y++)
     {
-      if (y >= sizeof(FrameBuffer) / sizeof(FrameBuffer[0]))
+      if (y >= HEIGHT)
       {
         // y is out of bounds for FrameBuffer
         break;
@@ -458,14 +457,26 @@ public:
 
       for (int x = 0; x < lsdWidth; x++)
       {
-        if (x >= sizeof(FrameBuffer[0]) / sizeof(FrameBuffer[0][0]))
+        if (x >= WIDTH)
         {
           // x is out of bounds for FrameBuffer
           break;
         }
         int xDraw = x + offsetX;
         int yDraw = y + offsetY;
-        mtx->drawPixel(xDraw, yDraw, FrameBuffer[y][x]);
+
+        uint32_t yOffset = y * WIDTH;
+        uint8_t pixel = imageData[yOffset + x];
+
+        if (pixel != transparentColorIndex)
+        {
+          CRGB color;
+          color.r = gifPalette[pixel].Red;
+          color.g = gifPalette[pixel].Green;
+          color.b = gifPalette[pixel].Blue;
+
+          mtx->drawPixel(xDraw, yDraw, color);
+        }
       }
     }
   }
@@ -499,27 +510,38 @@ public:
       }
     }
 
-    int pixel, yOffset;
-    for (int y = tbiImageY; y < tbiHeight + tbiImageY; y++)
+    if(disposalMethod == DISPOSAL_BACKGROUND)
     {
-      yOffset = y * WIDTH;
-      for (int x = tbiImageX; x < tbiWidth + tbiImageX; x++)
+      int pixel, yOffset;
+      for (int y = tbiImageY; y < tbiHeight + tbiImageY; y++)
       {
-        pixel = imageData[yOffset + x];
-        if (pixel != transparentColorIndex)
+        yOffset = y * WIDTH;
+        for (int x = tbiImageX; x < tbiWidth + tbiImageX; x++)
         {
-          CRGB color;
-          color.r = gifPalette[pixel].Red;
-          color.g = gifPalette[pixel].Green;
-          color.b = gifPalette[pixel].Blue;
-          FrameBuffer[y][x] = color;
-        }
-        else
-        {
-          if (disposalMethod == DISPOSAL_BACKGROUND)
+          pixel = imageData[yOffset + x];
+
+          if(pixel == transparentColorIndex)
           {
-            FrameBuffer[y][x] = CRGB::Black;
+            imageData[yOffset + x] = prevBackgroundIndex;
           }
+
+          /*
+          if (pixel != transparentColorIndex)
+          {
+            CRGB color;
+            color.r = gifPalette[pixel].Red;
+            color.g = gifPalette[pixel].Green;
+            color.b = gifPalette[pixel].Blue;
+            FrameBuffer[y][x] = color;
+          }
+          else
+          {
+            if (disposalMethod == DISPOSAL_BACKGROUND)
+            {
+              FrameBuffer[y][x] = CRGB::Black;
+            }
+          }
+          */
         }
       }
     }
@@ -538,12 +560,20 @@ public:
     return currentFrame;
   }
 
+  int getFrameDelay()
+  {
+    return newframeDelay;
+  }
+
   int playGif(int x, int y, File *imageFile, uint32_t frame = 0)
   {
+    if(imageFile == NULL || ! *imageFile)
+      return 0;
+
     offsetX = x;
     offsetY = y;
 
-    if (imageFile->name() == file.name())
+    if (file && strcmp(imageFile->name(), file.name()) == 0)
     {
       drawFrame();
       return lsdWidth;
@@ -553,14 +583,14 @@ public:
       currentFrame = 0;
       file = *imageFile;
 
-      memset(FrameBuffer, 0, sizeof(FrameBuffer));
+      //memset(FrameBuffer, 0, sizeof(FrameBuffer));
       memset(gifPalette, 0, sizeof(gifPalette));
-      memset(lzwImageData, 0, sizeof(lzwImageData));
+      //memset(lzwImageData, 0, sizeof(lzwImageData));
       memset(imageData, 0, sizeof(imageData));
       memset(imageDataBU, 0, sizeof(imageDataBU));
-      memset(stack, 0, sizeof(stack));
-      memset(suffix, 0, sizeof(suffix));
-      memset(prefix, 0, sizeof(prefix));
+      //memset(stack, 0, sizeof(stack));
+      //memset(suffix, 0, sizeof(suffix));
+      //memset(prefix, 0, sizeof(prefix));
       if (frame != 0)
       {
 
@@ -619,10 +649,9 @@ public:
 
   unsigned long drawFrame(bool force = false)
   {
-
     if (!force)
     {
-      if (millis() - lastFrameTime < newframeDelay)
+      if(currentFrame != 0 && (newframeDelay == 0 || (int)(millis() - lastFrameTime) < (newframeDelay*10)))
       {
         redrawLastFrame();
         return 0;
@@ -676,4 +705,7 @@ public:
     return ERROR_NON;
   }
 };
+
+#define IMPLEMENT_GIFPLAYER() byte GifPlayer::lzwImageData[1280]; char GifPlayer::tempBuffer[260]; byte GifPlayer::stack[LZW_SIZTABLE]; byte GifPlayer::suffix[LZW_SIZTABLE]; unsigned int GifPlayer::prefix[LZW_SIZTABLE];
+
 #endif

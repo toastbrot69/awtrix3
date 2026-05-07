@@ -26,7 +26,13 @@
 #ifndef LEDMATRIX_H
 #define LEDMATRIX_H
 
-#define MAX_ICONS_PER_APP 4
+#ifdef ESP32_S3
+    // 4 icons per Line
+    #define MAX_ICONS_PER_SCREEN ((MATRIX_HEIGHT / 8) * 4)
+#else
+    // 4 icons
+    #define MAX_ICONS_PER_SCREEN 4
+#endif
 
 #ifdef USE_HUB75
     #define MATRIX_WIDTH 64 

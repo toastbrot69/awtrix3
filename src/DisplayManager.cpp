@@ -2492,7 +2492,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
         GifPlayer* gp = NULL;
 
         int t;
-        for(t = 1; t < MAX_ICONS_PER_APP; t++) 
+        for(t = 1; t < MAX_ICONS_PER_SCREEN; t++) 
         {
           if(customapp->icons[t].iconName == file)
           {
@@ -2503,7 +2503,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
         }
         if(icc == NULL)
         {
-          for(t = 1; t < MAX_ICONS_PER_APP; t++) 
+          for(t = 1; t < MAX_ICONS_PER_SCREEN; t++) 
           {
             if(customapp->icons[t].isValid() == false)
             {
