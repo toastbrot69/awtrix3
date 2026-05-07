@@ -87,7 +87,7 @@ void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifP
     bool hasIcon = notifications[0].icon || notifications[0].jpegDataSize > 0;
 
     // Clear the matrix display
-    DisplayManager.drawFilledRect(0, 0, 32, 8, notifications[0].background);
+    DisplayManager.drawFilledRect(0, 0, MATRIX_WIDTH, MATRIX_HEIGHT, notifications[0].background);
 
     if (notifications[0].effect > -1)
     {
@@ -108,7 +108,7 @@ void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifP
         textWidth = getTextWidth(notifications[0].text.c_str(), notifications[0].textCase);
     }
 
-    uint16_t availableWidth = hasIcon ? 24 : 32;
+    uint16_t availableWidth = hasIcon ? (MATRIX_WIDTH-8) : MATRIX_WIDTH;
 
     // Check if text is scrolling
     bool noScrolling = (textWidth <= availableWidth);
@@ -250,7 +250,8 @@ void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifP
     int16_t textX;
     if (notifications[0].center)
     {
-        textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
+        //textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
+        textX = hasIcon ? (((MATRIX_WIDTH-8) - textWidth) / 2) + 9 : ((MATRIX_WIDTH - textWidth) / 2);
     }
     else
     {

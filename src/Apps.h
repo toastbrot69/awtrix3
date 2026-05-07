@@ -22,7 +22,10 @@ public:
 
     bool load(void)
     {
-        if(icon || iconName.length() == 0)
+        if(icon)
+            return true;
+
+        if(iconName.length() == 0)
             return false;
         
         isGif=false;
@@ -48,7 +51,7 @@ public:
         return false;
     }
 
-    void reset(void)
+    void play_ready(void)
     {
         currentFrame = 0;
         icon.close();
@@ -62,10 +65,6 @@ public:
         icon.close();
     }
 
-    bool isValid(void) const { 
-        //ESP_LOGE("icons", "isvalid(%s): %s", iconName.c_str(), icon ? "yes":"no");
-        return icon; }
-
     IconContainer& operator=(const IconContainer& src)
     {
         iconName = src.iconName;
@@ -74,6 +73,23 @@ public:
         isGif = src.isGif;
         currentFrame = src.currentFrame;
         return *this;
+    }
+
+    uint32_t draw_icon(GifPlayer* gp, int x, int y)
+    {
+        if(icon == false)
+            return 0;
+
+        if (isGif)
+        {
+            uint32_t iconWidth = gp->playGif(x, y, &icon, currentFrame);
+            currentFrame = gp->getFrame();
+
+            return iconWidth;
+        }
+
+        DisplayManager.drawJPG(x, y, icon);
+        return 8;
     }
 
     String  iconName;

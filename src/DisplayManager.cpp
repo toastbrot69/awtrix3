@@ -1174,11 +1174,11 @@ void ResetCustomApps()
     if (app.name != currentCustomApp)
     {
       app.iconWasPushed = false;
-      app.scrollposition = (app.icons[0].isValid() ? 9 : 0) + app.textOffset;
+      app.scrollposition = (app.icons[0].icon ? 9 : 0) + app.textOffset;
       app.iconPosition = 0;
       app.scrollDelay = 0;
       app.currentRepeat = 0;
-      app.icons[0].reset();
+      app.icons[0].play_ready();
     }
   }
 }
@@ -2505,32 +2505,19 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
         {
           for(t = 1; t < MAX_ICONS_PER_SCREEN; t++) 
           {
-            if(customapp->icons[t].isValid() == false)
+            if(customapp->icons[t].icon == false)
             {
               icc = &customapp->icons[t];
               icc->iconName = file;
               gp = &gifplayerarr[t];
-              if(icc->load() == false)
-              {
-                icc->clear();
-                icc = NULL;
-              }
               break;
             }
           }
         }  
 
-        if(icc)
+        if(icc && icc->load())
         {
-          if (icc->isGif)
-          {
-              gp->playGif(x + xOffset, y + yOffset, &icc->icon, icc->currentFrame);
-              icc->currentFrame = gp->getFrame();
-          }
-          else
-          {
-            DisplayManager.drawJPG(x + xOffset, y + yOffset, icc->icon);
-          }
+          icc->draw_icon(gp, x + xOffset, y + yOffset);
         }
       }
     }

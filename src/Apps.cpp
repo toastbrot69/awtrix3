@@ -472,8 +472,7 @@ uint32_t ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiS
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
-    ca->icons[0].load();
-    bool hasIcon = ca->icons[0].isValid() || ca->jpegDataSize > 0;
+    bool hasIcon = ca->jpegDataSize > 0 || ca->icons[0].load();
 
     uint16_t textWidth = 0;
     if (!ca->fragments.empty())
@@ -515,23 +514,16 @@ uint32_t ShowCustomApp(String name, GenericLedMatrixIF *matrix, MatrixDisplayUiS
                     }
                 }
             }
-            if (ca->icons[0].isGif)
+            if (ca->jpegDataSize > 0)
             {
-                iconWidth = gifPlayer[0].playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icons[0].icon, ca->icons[0].currentFrame);
-                ca->icons[0].currentFrame = gifPlayer[0].getFrame();
+                DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->jpegDataBuffer, ca->jpegDataSize);
+                iconWidth = 8;
             }
             else
             {
-                iconWidth = 8;
-                if (ca->jpegDataSize > 0)
-                {
-                    DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->jpegDataBuffer, ca->jpegDataSize);
-                }
-                else
-                {
-                    DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->icons[0].icon);
-                }
+                iconWidth = ca->icons[0].draw_icon(&gifPlayer[0], x + ca->iconPosition + ca->iconOffset, y);
             }
+
             if (!noScrolling)
             {
                 if (ca->progress > -1)
