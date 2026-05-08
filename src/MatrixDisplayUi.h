@@ -65,6 +65,8 @@ enum AppState
   FIXED
 };
 
+#define MAX_APPS_PER_SCREEN (MATRIX_HEIGHT / 8)
+
 // Structure of the UiState
 struct MatrixDisplayUiState
 {
@@ -73,6 +75,7 @@ struct MatrixDisplayUiState
 
   AppState appState = FIXED;
   uint8_t currentApp = 0;
+  uint8_t lastAppOnScreen = 0;
 
   // Normal = 1, Inverse = -1;
   int8_t appTransitionDirection = 1;

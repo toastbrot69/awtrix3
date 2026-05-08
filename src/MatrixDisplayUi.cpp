@@ -438,18 +438,20 @@ void MatrixDisplayUi::drawApp()
     #if 0
       this->AppBases[this->state.currentApp]->do_the_app(this->matrix, &this->state, 0, 0, gif1);
     #else
+
       uint32_t used_h = 0;
-      uint32_t curr_app = this->state.currentApp;
+      uint8_t cur_app = this->state.currentApp;
 
-      app_base* app = this->AppBases[curr_app];
+      app_base* app = this->AppBases[cur_app];
 
-      while((used_h + app->height) <= MATRIX_HEIGHT)
+      while(used_h == 0 || (used_h + app->height) <= MATRIX_HEIGHT)
       {
         //ESP_LOGE("displ", "draw(%s): y:%i -> %i\n", app->name.c_str(), used_h, used_h+app->height-1);
+        this->state.lastAppOnScreen = cur_app;
         app->do_the_app(this->matrix, &this->state, 0, used_h, gif1);
         used_h += app->height;
-        curr_app = (curr_app + AppCount + 1) % AppCount;
-        app = this->AppBases[curr_app];
+        cur_app = (cur_app + AppCount + 1) % AppCount;
+        app = this->AppBases[cur_app];
       }
     #endif
     swapped = true;
@@ -505,6 +507,10 @@ uint8_t MatrixDisplayUi::getnextAppNumber()
 {
   if (this->nextAppNumber != -1)
     return this->nextAppNumber;
+
+  if(this->state.appTransitionDirection > 0)
+    return (this->state.lastAppOnScreen + this->AppCount + this->state.appTransitionDirection) % this->AppCount;
+    
   return (this->state.currentApp + this->AppCount + this->state.appTransitionDirection) % this->AppCount;
 }
 
