@@ -2313,7 +2313,7 @@ String DisplayManager_::ledsAsJson()
   String jsonString;
   serializeJson(jsonColors, jsonString);
 
-  DEBUG_PRINTF("ledsAsJson(): %u\n", jsonString.length());
+  //DEBUG_PRINTF("ledsAsJson(): %u\n", jsonString.length());
 
   return jsonString;
 }
