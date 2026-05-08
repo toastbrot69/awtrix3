@@ -119,15 +119,15 @@ void GenericLedMatrixIF::drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[]
 int GenericLedMatrixIF::XY(int16_t x, int16_t y) // compat with FastLED code, returns 1D offset
 {
     if(x < 0 || y < 0) 
-        return 0;
+        return MATRIX_WIDTH*MATRIX_HEIGHT;
         
     if(x >= MATRIX_WIDTH) 
-        return 0;
+        return MATRIX_WIDTH*MATRIX_HEIGHT;
     
     if( y >= MATRIX_HEIGHT) 
-        return 0;
+        return MATRIX_WIDTH*MATRIX_HEIGHT;
 
-    return (y * MATRIX_WIDTH) + x + 1; // everything offset by one to compute out of bounds stuff - never displayed by ShowFrame()
+    return (y * MATRIX_WIDTH) + x;
 }
 
 uint16_t GenericLedMatrixIF::Color(uint8_t r, uint8_t g, uint8_t b)

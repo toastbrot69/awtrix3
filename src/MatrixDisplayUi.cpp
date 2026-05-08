@@ -191,6 +191,8 @@ MatrixDisplayUiState *MatrixDisplayUi::getUiState()
 int8_t MatrixDisplayUi::update()
 {
   long appStart = millis();
+  int took = 0;
+
   int8_t timeBudget = this->updateInterval - (appStart - this->state.lastUpdate);
   if (timeBudget <= 0)
   {
@@ -200,9 +202,12 @@ int8_t MatrixDisplayUi::update()
 
     this->state.lastUpdate = appStart;
     this->tick();
-  }
 
-  return this->updateInterval - (millis() - appStart);
+    took = (millis() - appStart);
+    //ESP_LOGE("displ", "update: %i\n", took);
+  }
+  
+  return this->updateInterval - took;
 }
 
 void MatrixDisplayUi::tick()
@@ -440,6 +445,7 @@ void MatrixDisplayUi::drawApp()
 
       while((used_h + app->height) <= MATRIX_HEIGHT)
       {
+        //ESP_LOGE("displ", "draw(%s): y:%i -> %i\n", app->name.c_str(), used_h, used_h+app->height-1);
         app->do_the_app(this->matrix, &this->state, 0, used_h, gif1);
         used_h += app->height;
         curr_app = (curr_app + AppCount + 1) % AppCount;

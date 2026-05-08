@@ -40,8 +40,8 @@ int previousDataLength = 0;
 #define MATRIX_PIN 32
 #endif
 
-CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
-CRGB ledsCopy[MATRIX_WIDTH * MATRIX_HEIGHT];
+CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT + 1];     // + 1 out-of-bounds pixel
+CRGB ledsCopy[MATRIX_WIDTH * MATRIX_HEIGHT + 1]; // + 1 out-of-bounds pixel
 float actualBri;
 int16_t cursor_x, cursor_y;
 uint32_t textColor;
