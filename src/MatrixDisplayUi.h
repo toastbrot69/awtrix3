@@ -38,6 +38,12 @@
 #define DEBUG_MatrixDisplayUi(...)
 #endif
 
+#define MAX_ICONS_PER_APP 4
+//#define MAX_ICONS_PER_SCREEN (MAX_ICONS_PER_APP * MATRIX_HEIGHT / 8)
+#define MAX_ICONS_PER_SCREEN 4
+
+GifPlayer* getNextGifplayer(GifPlayer* gifplayerarr);
+
 enum AnimationDirection
 {
   SLIDE_UP,

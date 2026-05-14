@@ -32,8 +32,36 @@
 #include "Globals.h"
 #include "effects.h"
 
-GifPlayer gif1[MAX_ICONS_PER_APP];
-GifPlayer gif2[MAX_ICONS_PER_APP];
+byte GifPlayer::lzwImageData[1280];
+char GifPlayer::tempBuffer[260];
+
+
+GifPlayer gifplayer[2][MAX_ICONS_PER_SCREEN];
+
+#define gif1 gifplayer[0]
+#define gif2 gifplayer[1]
+
+static uint32_t nextPlayerIx[2] = {0,0};
+
+GifPlayer* getNextGifplayer(GifPlayer* gifplayerarr)
+{
+  uint32_t ix = gifplayerarr == gifplayer[0] ? 0 : 1;
+
+  if(nextPlayerIx[ix] >= MAX_ICONS_PER_SCREEN)
+    return NULL;
+
+  GifPlayer* ret = &gifplayer[ix][nextPlayerIx[ix]];
+  nextPlayerIx[ix]++;
+  
+  return ret;
+}
+
+void resetNextGifplayer(GifPlayer* gifplayerarr)
+{
+  uint32_t ix = gifplayerarr == gifplayer[0] ? 0 : 1;
+
+  nextPlayerIx[ix] = 0;
+}
 
 MatrixDisplayUi::MatrixDisplayUi(GenericLedMatrixIF *matrix)
 {
@@ -46,7 +74,7 @@ void MatrixDisplayUi::init()
   this->matrix->setTextWrap(false);
   this->matrix->setBrightness(70);
 
-  for(int t = 0; t < MAX_ICONS_PER_APP; t++)
+  for(int t = 0; t < MAX_ICONS_PER_SCREEN; t++)
   {
     gif1[t].setMatrix(this->matrix);
     gif2[t].setMatrix(this->matrix);
@@ -245,6 +273,9 @@ void MatrixDisplayUi::tick()
   {
     callEffect(this->matrix, 0, 0, BackgroundEffect);
   }
+
+  resetNextGifplayer(gif1);
+  resetNextGifplayer(gif2);
 
   if (this->AppCount > 0)
     this->drawApp();

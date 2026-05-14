@@ -1178,7 +1178,7 @@ void ResetCustomApps()
       app.iconPosition = 0;
       app.scrollDelay = 0;
       app.currentRepeat = 0;
-      app.icons[0].reset();
+      //app.icons[0].reset();
     }
   }
 }
@@ -2487,7 +2487,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
         int x = params[0].as<int>();
         int y = params[1].as<int>();
         String file = params[2].as<String>();
-
+/*
         IconContainer * icc = NULL;
         GifPlayer* gp = NULL;
 
@@ -2510,11 +2510,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
               icc = &customapp->icons[t];
               icc->iconName = file;
               gp = &gifplayerarr[t];
-              if(icc->load() == false)
-              {
-                icc->clear();
-                icc = NULL;
-              }
+              
               break;
             }
           }
@@ -2522,16 +2518,26 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
 
         if(icc)
         {
-          if (icc->isGif)
+          File icon = gp->file;
+          if(icc->load(icon) == false)
           {
-              gp->playGif(x + xOffset, y + yOffset, &icc->icon, icc->currentFrame);
-              icc->currentFrame = gp->getFrame();
+            icc->clear();
+            icc = NULL;
           }
           else
           {
-            DisplayManager.drawJPG(x + xOffset, y + yOffset, icc->icon);
+            if (icc->isGif)
+            {
+                gp->file = icon;
+                gp->playGif(x + xOffset, y + yOffset, NULL);
+            }
+            else
+            {
+              DisplayManager.drawJPG(x + xOffset, y + yOffset, icon);
+            }
           }
         }
+          */
       }
     }
   }

@@ -67,8 +67,8 @@ public:
   int rectHeight;
   int colorCount;
   _RGB gifPalette[256];
-  byte lzwImageData[1280];
-  char tempBuffer[260];
+  static byte lzwImageData[1280];
+  static char tempBuffer[260];
   File file;
   byte imageData[WIDTH * HEIGHT];
   byte imageDataBU[WIDTH * HEIGHT];
@@ -563,7 +563,6 @@ public:
       memset(prefix, 0, sizeof(prefix));
       if (frame != 0)
       {
-
         parseGifHeader();
         parseLogicalScreenDescriptor();
         parseGlobalColorTable();

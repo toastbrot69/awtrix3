@@ -10,7 +10,6 @@ class IconContainer
 public:
     IconContainer()
     {
-        currentFrame = 0;
         isGif=false;
     }
     IconContainer(const IconContainer& src)
@@ -20,13 +19,16 @@ public:
     virtual ~IconContainer()
     {}
 
-    bool load(void)
+    bool load(File& icon)
     {
-        if(icon || iconName.length() == 0)
+        if(icon && iconFile == icon.name())
+            return true;
+
+        if(iconName.length() == 0)
             return false;
-        
+
         isGif=false;
-        currentFrame = 0;
+        iconFile.clear();
         icon.close();
 
         const char *extensions[] = {".jpg", ".gif"};
@@ -34,53 +36,50 @@ public:
 
         for (int i = 0; i < 2; i++)
         {
-            String filePath = "/ICONS/" + iconName + extensions[i];
-            if (LittleFS.exists(filePath))
+            iconFile = "/ICONS/" + iconName + extensions[i];
+            if (LittleFS.exists(iconFile))
             {
                 isGif = isGifFlags[i];
-                icon = LittleFS.open(filePath);
-                currentFrame = 0;
+                icon = LittleFS.open(iconFile);
 
-                ESP_LOGE("icons", "icon(%s) loaded %s", filePath.c_str(), icon ? "OK":"FAIL");
-                return true;
+                ESP_LOGE("icons", "icon(%s) loaded %s", iconFile.c_str(), icon ? "OK":"FAIL");
+                break;
             }
         }
-        return false;
-    }
 
-    void reset(void)
-    {
-        currentFrame = 0;
-        icon.close();
+        if(icon)
+            return true;
+
+        clear();
+
+        return false;
     }
 
     void clear(void)
     {
         isGif=false;
-        currentFrame = 0;
+        iconFile.clear();
         iconName.clear();
-        icon.close();
     }
 
-    bool isValid(void) const { 
+    bool isValid(void) const 
+    { 
         //ESP_LOGE("icons", "isvalid(%s): %s", iconName.c_str(), icon ? "yes":"no");
-        return icon; }
+        return iconFile.length() > 0; 
+    }
 
     IconContainer& operator=(const IconContainer& src)
     {
         iconName = src.iconName;
 
-        icon = src.icon;
+        iconFile = src.iconFile;
         isGif = src.isGif;
-        currentFrame = src.currentFrame;
         return *this;
     }
 
-    String  iconName;
+    String  iconName, iconFile;
 
-    File    icon;
     bool    isGif;
-    uint8_t currentFrame;
 };
 
 struct CustomApp
