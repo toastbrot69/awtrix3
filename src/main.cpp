@@ -100,6 +100,8 @@ void setup()
       textForDisplay += ":" + String(WEB_PORT);
     }
 
+    ESP_LOGE("main", "%s", textForDisplay.c_str());
+
     int textLength = textForDisplay.length() * 4;
     while (x >= -textLength)
     {

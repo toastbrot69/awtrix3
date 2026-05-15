@@ -38,6 +38,39 @@
 #define DEBUG_MatrixDisplayUi(...)
 #endif
 
+class IconDisplayer : protected GifPlayer
+{
+protected:
+  typedef enum
+  {
+    t_unk = 0,
+    t_gif,
+    t_jpg
+  }type_e;
+
+  type_e    p_type;
+  String    p_iconname, p_filename;
+  uint32_t  p_ix;
+  bool      p_alt;
+public:
+  IconDisplayer();
+
+  void setMatrix(GenericLedMatrixIF *matrix, uint32_t ix, bool alt);
+
+  bool set(const String& iconname);
+  void release(void);
+
+  int      display(int x, int y, uint8_t frame = 0);
+  uint8_t  getCurrentFrame(void) { return GifPlayer::getFrame();  }
+
+  bool          isEmpty(void) const { return p_type == t_unk; }
+  const String& getIconName(void) const { return p_iconname; }
+};
+
+IconDisplayer* getDisplayer(const String& iconnname, bool arr2 = false);
+
+///////////////////////////////////////////////////////////////////////////////////////
+
 enum AnimationDirection
 {
   SLIDE_UP,
@@ -74,6 +107,9 @@ struct MatrixDisplayUiState
   long ticksSinceLastStateSwitch = 0;
 
   AppState appState = FIXED;
+
+  void setAppState(AppState a);
+
   uint8_t currentApp = 0;
   uint8_t lastAppOnScreen = 0;
 
@@ -88,7 +124,7 @@ struct MatrixDisplayUiState
 
 // return: height of app
 //typedef uint32_t (*AppCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
-typedef void (*OverlayCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
+typedef void (*OverlayCallback)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, bool alt_display);
 typedef void (*BackgroundCallback)(GenericLedMatrixIF *matrix);
 
 class app_base
@@ -99,7 +135,7 @@ public:
     String   name;
     uint32_t height=8;
 
-    virtual void do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer) = 0;
+    virtual void do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display) = 0;
 };
 
 class MatrixDisplayUi

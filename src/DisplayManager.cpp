@@ -677,13 +677,12 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
       
       customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
     }
-    else if (customApp.icons[0].iconName != newIconName)
+    else if (customApp.icons[0] != newIconName)
     {
-      customApp.icons[0].clear();
       customApp.jpegDataSize = 0;
       customApp.iconPosition = 0;
 
-      customApp.icons[0].iconName = newIconName;
+      customApp.icons[0] = newIconName;
     }
   }
   else
@@ -961,35 +960,17 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     if (iconValue.length() > 64)
     {
       newNotification.jpegDataSize = decode_base64((const unsigned char *)iconValue.c_str(), newNotification.jpegDataBuffer);
-      newNotification.isGif = false;
     }
     else
     {
       newNotification.jpegDataSize = 0;
-      if (LittleFS.exists("/ICONS/" + iconValue + ".jpg"))
-      {
-        newNotification.isGif = false;
-        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".jpg");
-      }
-      else if (LittleFS.exists("/ICONS/" + iconValue + ".gif"))
-      {
-        newNotification.isGif = true;
-        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".gif");
-      }
-      else
-      {
-        fs::File nullPointer;
-        newNotification.icon = nullPointer;
-        newNotification.isGif = false;
-      }
+      newNotification.icon = iconValue;
     }
   }
   else
   {
-    fs::File nullPointer;
-    newNotification.icon = nullPointer;
+    newNotification.icon.clear();
     newNotification.jpegDataSize = 0;
-    newNotification.isGif = false;
   }
 
   if (doc.containsKey("clients"))
@@ -1184,11 +1165,10 @@ void ResetCustomApps()
     if (app.name != currentCustomApp)
     {
       app.iconWasPushed = false;
-      app.scrollposition = (app.icons[0].icon ? 9 : 0) + app.textOffset;
+      app.scrollposition = (app.icons[0].length() > 0 ? 9 : 0) + app.textOffset;
       app.iconPosition = 0;
       app.scrollDelay = 0;
       app.currentRepeat = 0;
-      app.icons[0].play_ready();
     }
   }
 }
@@ -1432,7 +1412,7 @@ void DisplayManager_::dismissNotify()
       notifications[1].startime = millis();
     }
     wakeup = notifications[0].wakeup;
-    notifications[0].icon.close();
+    notifications[0].icon.clear();
     notifications.erase(notifications.begin());
     PeripheryManager.stopSound();
   }
@@ -2330,7 +2310,7 @@ String DisplayManager_::getAppsWithIcon()
     CustomApp *customApp = getCustomAppByName(app.first);
     if (customApp != nullptr)
     {
-      appObject["icon"] = customApp->icons[0].iconName;
+      appObject["icon"] = customApp->icons[0];
     }
   }
   String jsonString;
@@ -2371,7 +2351,7 @@ void DisplayManager_::reorderApps(const String &jsonString)
   ui->forceResetState();
 }
 
-void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions, CustomApp* customapp, GifPlayer* gifplayerarr)
+void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions, CustomApp* customapp, bool alt_display)
 {
   DynamicJsonDocument doc(8192);
   DeserializationError error = deserializeJson(doc, drawInstructions);
@@ -2490,38 +2470,12 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
       {
         int x = params[0].as<int>();
         int y = params[1].as<int>();
-        String file = params[2].as<String>();
+        String icon = params[2].as<String>();
 
-        IconContainer * icc = NULL;
-        GifPlayer* gp = NULL;
-
-        int t;
-        for(t = 1; t < MAX_ICONS_PER_SCREEN; t++) 
+        IconDisplayer* d = getDisplayer(icon, alt_display);
+        if(d)
         {
-          if(customapp->icons[t].iconName == file)
-          {
-            icc = &customapp->icons[t];
-            gp = &gifplayerarr[t];
-            break;
-          }
-        }
-        if(icc == NULL)
-        {
-          for(t = 1; t < MAX_ICONS_PER_SCREEN; t++) 
-          {
-            if(customapp->icons[t].icon == false)
-            {
-              icc = &customapp->icons[t];
-              icc->iconName = file;
-              gp = &gifplayerarr[t];
-              break;
-            }
-          }
-        }  
-
-        if(icc && icc->load())
-        {
-          icc->draw_icon(gp, x + xOffset, y + yOffset);
+          d->display(x + xOffset, y + yOffset);
         }
       }
     }

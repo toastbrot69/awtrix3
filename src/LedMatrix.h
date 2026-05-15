@@ -51,10 +51,17 @@
         #define B_PIN    B_PIN_DEFAULT
         #define C_PIN    C_PIN_DEFAULT
         #define D_PIN    D_PIN_DEFAULT
-        #define E_PIN    39
-        #define LAT_PIN  LAT_PIN_DEFAULT
-        #define OE_PIN   OE_PIN_DEFAULT
-        #define CLK_PIN  CLK_PIN_DEFAULT
+        #if 1
+            #define E_PIN    39
+            #define LAT_PIN  LAT_PIN_DEFAULT
+            #define OE_PIN   OE_PIN_DEFAULT
+            #define CLK_PIN  CLK_PIN_DEFAULT
+        #else
+            #define E_PIN    35
+            #define LAT_PIN  36
+            #define OE_PIN   37
+            #define CLK_PIN  38
+        #endif
     #else        
         #if 0
             #define R1_PIN 25

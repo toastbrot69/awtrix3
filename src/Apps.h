@@ -5,103 +5,9 @@
 #include "MatrixDisplayUi.h"
 #include "effects.h"
 
-class IconContainer
-{
-public:
-    IconContainer()
-    {
-        currentFrame = 0;
-        isGif=false;
-    }
-    IconContainer(const IconContainer& src)
-    {
-        operator=(src);
-    }
-    virtual ~IconContainer()
-    {}
-
-    bool load(void)
-    {
-        if(icon)
-            return true;
-
-        if(iconName.length() == 0)
-            return false;
-        
-        isGif=false;
-        currentFrame = 0;
-        icon.close();
-
-        const char *extensions[] = {".jpg", ".gif"};
-        bool isGifFlags[] = {false, true};
-
-        for (int i = 0; i < 2; i++)
-        {
-            String filePath = "/ICONS/" + iconName + extensions[i];
-            if (LittleFS.exists(filePath))
-            {
-                isGif = isGifFlags[i];
-                icon = LittleFS.open(filePath);
-                currentFrame = 0;
-
-                ESP_LOGE("icons", "icon(%s) loaded %s", filePath.c_str(), icon ? "OK":"FAIL");
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void play_ready(void)
-    {
-        currentFrame = 0;
-        icon.close();
-    }
-
-    void clear(void)
-    {
-        isGif=false;
-        currentFrame = 0;
-        iconName.clear();
-        icon.close();
-    }
-
-    IconContainer& operator=(const IconContainer& src)
-    {
-        iconName = src.iconName;
-
-        icon = src.icon;
-        isGif = src.isGif;
-        currentFrame = src.currentFrame;
-        return *this;
-    }
-
-    uint32_t draw_icon(GifPlayer* gp, int x, int y)
-    {
-        if(icon == false)
-            return 0;
-
-        if (isGif)
-        {
-            uint32_t iconWidth = gp->playGif(x, y, &icon, currentFrame);
-            currentFrame = gp->getFrame();
-
-            return iconWidth;
-        }
-
-        DisplayManager.drawJPG(x, y, icon);
-        return 8;
-    }
-
-    String  iconName;
-
-    File    icon;
-    bool    isGif;
-    uint8_t currentFrame;
-};
-
 struct CustomApp : app_base
 {
-    virtual void do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer) override;
+    virtual void do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display) override;
 
     int bounceDir = 0;
     bool hasCustomColor = false;
@@ -148,7 +54,7 @@ struct CustomApp : app_base
     uint8_t jpegDataBuffer[1000];
     unsigned int jpegDataSize = 0;
 
-    IconContainer   icons[MAX_ICONS_PER_SCREEN];
+    String icons[MAX_ICONS_PER_SCREEN];
 };
 
 extern std::vector<std::pair<String, app_base*>> Apps;
@@ -176,19 +82,19 @@ const char *getTimeFormat();
 
 typedef struct NativeApp : app_base
 {
-    typedef uint32_t (*native_app_t)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
+    typedef uint32_t (*native_app_t)(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display);
 
     native_app_t native_app;
 
     NativeApp(native_app_t app, String name);
 
-    virtual void do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer) override;
+    virtual void do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display) override;
 }NativeApp;
 
-uint32_t TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
-uint32_t DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
-uint32_t TempApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
-uint32_t HumApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
+uint32_t TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display);
+uint32_t DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display);
+uint32_t TempApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display);
+uint32_t HumApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display);
 
 #ifdef ULANZI
     uint32_t BatApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);

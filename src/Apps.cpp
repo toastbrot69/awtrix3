@@ -103,7 +103,7 @@ const char *getTimeFormat()
     }
 }
 
-uint32_t TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display)
 {
     if (notifyFlag)
         return 8;
@@ -135,8 +135,12 @@ uint32_t TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_
 
         if (BIGTIME_BG_ISGIF)
         {
-            gifPlayer->playGif(0 + x, 0 + y, &BIGTIME_BG_GIF, BIGTIME_BG_CURRENTFRAME);
-            BIGTIME_BG_CURRENTFRAME = gifPlayer->getFrame();
+            IconDisplayer* d = getDisplayer("bigtime", alt_display);
+            if(d)
+            {
+                d->display(0 + x, 0 + y, BIGTIME_BG_CURRENTFRAME);
+                BIGTIME_BG_CURRENTFRAME = d->getCurrentFrame();
+            }
         }
         else
         {
@@ -305,7 +309,7 @@ uint32_t TimeApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_
     return 8;
 }
 
-uint32_t DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display)
 {
     if (notifyFlag)
         return 8;
@@ -339,7 +343,7 @@ uint32_t DateApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_
     return 8;
 }
 
-uint32_t TempApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t TempApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display)
 {
     if (notifyFlag)
         return 8;
@@ -374,7 +378,7 @@ uint32_t TempApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_
     return 8;
 }
 
-uint32_t HumApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t HumApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display)
 {
     if (notifyFlag)
         return 8;
@@ -398,7 +402,7 @@ uint32_t HumApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t
 }
 
 #ifndef awtrix2_upgrade
-uint32_t BatApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t BatApp(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display)
 {
     if (notifyFlag)
         return 8;
@@ -438,7 +442,7 @@ String replacePlaceholders(String text)
     return text;
 }
 
-uint32_t ShowCustomApp(CustomApp* ca, GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+uint32_t ShowCustomApp(CustomApp* ca, GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display)
 {
     //DEBUG_PRINTF("ShowCustomApp(%s) %i.%i\r\n", ca->name.c_str(), x, y);
 
@@ -466,7 +470,7 @@ uint32_t ShowCustomApp(CustomApp* ca, GenericLedMatrixIF *matrix, MatrixDisplayU
     CURRENT_APP = ca->name;
     currentCustomApp = ca->name;
 
-    bool hasIcon = ca->jpegDataSize > 0 || ca->icons[0].load();
+    bool hasIcon = ca->jpegDataSize > 0 || ca->icons[0].length() > 0;
 
     uint16_t textWidth = 0;
     if (!ca->fragments.empty())
@@ -515,7 +519,11 @@ uint32_t ShowCustomApp(CustomApp* ca, GenericLedMatrixIF *matrix, MatrixDisplayU
             }
             else
             {
-                iconWidth = ca->icons[0].draw_icon(&gifPlayer[0], x + ca->iconPosition + ca->iconOffset, y);
+                IconDisplayer* d = getDisplayer(ca->icons[0], alt_display);
+                if(d)
+                {
+                    iconWidth = d->display(x + ca->iconPosition + ca->iconOffset, y);
+                }
             }
 
             if (!noScrolling)
@@ -533,7 +541,7 @@ uint32_t ShowCustomApp(CustomApp* ca, GenericLedMatrixIF *matrix, MatrixDisplayU
 
         if (ca->drawInstructions.length() > 0)
         {
-            DisplayManager.processDrawInstructions(x, y, ca->drawInstructions, ca, gifPlayer);
+            DisplayManager.processDrawInstructions(x, y, ca->drawInstructions, ca, alt_display);
         }
 
         if (ca->progress > -1)
@@ -859,9 +867,9 @@ NativeApp::NativeApp(native_app_t app, String _name)
     native_app = app;
 }
 
-void NativeApp::do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+void NativeApp::do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display)
 {
-    native_app(matrix, state, x, y, gifPlayer);
+    native_app(matrix, state, x, y, alt_display);
 }
 
 NativeApp nativeTimeApp(TimeApp, "Time");
@@ -881,7 +889,7 @@ NativeApp nativeHumApp(HumApp, "Humidity");
 
 ///////////////////////////////////////
 
-void CustomApp::do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+void CustomApp::do_the_app(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool alt_display)
 {
-    ::ShowCustomApp(this, matrix, state, x, y, gifPlayer);
+    ::ShowCustomApp(this, matrix, state, x, y, alt_display);
 }

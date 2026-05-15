@@ -10,7 +10,7 @@
 std::vector<Notification> notifications;
 bool notifyFlag = false;
 
-void StatusOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+void StatusOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, bool alt_display)
 {
     if (!WiFi.isConnected())
     {
@@ -22,7 +22,7 @@ void StatusOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifP
     }
 }
 
-void MenuOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+void MenuOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, bool alt_display)
 {
 
     if (!MenuManager.inMenu)
@@ -34,7 +34,7 @@ void MenuOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPla
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
 }
 
-void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, bool alt_display)
 {
     // Check if notification flag is set
     if (notifications.empty())
@@ -62,7 +62,7 @@ void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifP
         {
             notifications[1].startime = millis();
         }
-        notifications[0].icon.close();
+        notifications[0].icon.clear();
         notifications.erase(notifications.begin());
 
         if (notifications[0].wakeup && MATRIX_OFF)
@@ -84,7 +84,7 @@ void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifP
     CURRENT_APP = F("Notification");
 
     // Check if notification has an icon
-    bool hasIcon = notifications[0].icon || notifications[0].jpegDataSize > 0;
+    bool hasIcon = notifications[0].icon.length() > 0 || notifications[0].jpegDataSize > 0;
 
     // Clear the matrix display
     DisplayManager.drawFilledRect(0, 0, MATRIX_WIDTH, MATRIX_HEIGHT, notifications[0].background);
@@ -134,23 +134,21 @@ void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifP
                     }
                 }
             }
-
-            if (notifications[0].isGif)
+            
+            iconWidth = 8;
+            if (notifications[0].jpegDataSize > 0)
             {
-                iconWidth = gifPlayer->playGif(notifications[0].iconPosition + notifications[0].iconOffset, 0, &notifications[0].icon);
+                DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].jpegDataBuffer, notifications[0].jpegDataSize);
             }
             else
             {
-                iconWidth = 8;
-                if (notifications[0].jpegDataSize > 0)
+                IconDisplayer* d = getDisplayer(notifications[0].icon, alt_display);
+                if(d)
                 {
-                    DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].jpegDataBuffer, notifications[0].jpegDataSize);
-                }
-                else
-                {
-                    DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].icon);
+                    iconWidth = d->display(notifications[0].iconPosition + notifications[0].iconOffset, 0);
                 }
             }
+
             if (!noScrolling)
             {
                 if (notifications[0].progress > -1)
@@ -171,7 +169,7 @@ void NotifyOverlay(GenericLedMatrixIF *matrix, MatrixDisplayUiState *state, GifP
 
         if (notifications[0].drawInstructions.length() > 0)
         {
-            DisplayManager.processDrawInstructions(0, 0, notifications[0].drawInstructions, NULL, gifPlayer);
+            DisplayManager.processDrawInstructions(0, 0, notifications[0].drawInstructions, NULL, alt_display);
         }
 
         if (notifications[0].barSize > 0)

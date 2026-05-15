@@ -15,9 +15,8 @@ struct Notification
     String text;
     uint32_t color;
     bool soundPlayed = false;
-    File icon;
+    String icon;
     bool rainbow;
-    bool isGif;
     int fade = 0;
     int blink = 0;
     int iconOffset;

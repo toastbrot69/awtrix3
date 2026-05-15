@@ -1,7 +1,7 @@
 #include "effects.h"
 
 const CRGBPalette16 palette = RainbowColors_p;
-CRGB tempLeds[32][8];
+CRGB tempLeds[MATRIX_WIDTH][MATRIX_HEIGHT];
 
 void Pacifica(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
@@ -86,7 +86,7 @@ void Matrix(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *se
     static uint8_t intensity = 8; // Adjust to manage the frequency of new "drops"
 
     // Create a static matrix to hold the state of each pixel
-    static CRGB ledState[32][8];
+    static CRGB ledState[MATRIX_WIDTH][MATRIX_HEIGHT];
 
     uint8_t baseSpeed = 180;                            // Base value for speed calculation
     uint8_t speed = baseSpeed - (settings->speed * 15); // Adjust speed based on settings
@@ -100,16 +100,16 @@ void Matrix(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *se
         lastMove = millis();
 
         // Shift 8 down and update the ledState array
-        for (uint16_t i = 0; i < 32; i++)
+        for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
         {
-            for (uint16_t j = 8 - 1; j > 0; j--)
+            for (uint16_t j = MATRIX_HEIGHT - 1; j > 0; j--)
             {
                 ledState[i][j] = ledState[i][j - 1];
             }
         }
 
         // Fade top row and spawn new pixels
-        for (uint16_t i = 0; i < 32; i++)
+        for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
         {
             if (ledState[i][0] == spawnColor)
             {
@@ -129,9 +129,9 @@ void Matrix(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *se
     }
 
     // Always draw the current state
-    for (uint16_t i = 0; i < 32; i++)
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             matrix->drawPixel(x + i, y + j, ledState[i][j]);
         }
@@ -148,12 +148,12 @@ void SwirlIn(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *s
         angle += 4;
     }
 
-    for (uint16_t i = 0; i < 32; i++)
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
-            float xDiff = 16 - i;
-            float yDiff = 4 - j;
+            float xDiff = MATRIX_WIDTH/2 - i;
+            float yDiff = MATRIX_HEIGHT/2 - j;
             uint16_t dist = sqrt(xDiff * xDiff + yDiff * yDiff);
             uint8_t hue = map(dist, 0, sqrt(16 * 16 + 4 * 4), 0, 255) + angle;
             CRGB color = ColorFromPalette(settings->palette, hue, 255, settings->blend ? LINEARBLEND : NOBLEND);
@@ -172,11 +172,11 @@ void SwirlOut(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *
         lastUpdate = millis();
         angle += 4;
     }
-    float centerX = 16.0;
-    float centerY = 4.0;
-    for (uint16_t i = 0; i < 32; i++)
+    float centerX = MATRIX_WIDTH;
+    float centerY = MATRIX_HEIGHT;
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             float xDiff = centerX - i;
             float yDiff = centerY - j;
@@ -191,10 +191,10 @@ void SwirlOut(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *
 void ColorWaves(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     // Map palette colors to 0-255
-    float colorIndex = 255 / (32 - 1);
-    for (uint16_t i = 0; i < 32; i++)
+    float colorIndex = 255 / (MATRIX_WIDTH - 1);
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             // Calculate index into palette using column position, time, and speed
             uint8_t paletteIndex = ((uint8_t)(i * colorIndex + millis() * settings->speed / 100)) % 256;
@@ -221,9 +221,9 @@ void TwinklingStars(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSett
     static uint32_t lastUpdate = 0;
 
     // Fade all LEDs each frame
-    for (uint16_t i = 0; i < 32; i++)
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             stars[i][j].brightness -= 0.01;
             if (stars[i][j].brightness < 0)
@@ -240,8 +240,8 @@ void TwinklingStars(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSett
         uint8_t numStars = random(1, 5); // Create between 1-5 new stars per frame
         for (uint8_t i = 0; i < numStars; i++)
         {
-            uint16_t starX = random(32);
-            uint16_t starY = random(8);
+            uint16_t starX = random(MATRIX_WIDTH);
+            uint16_t starY = random(MATRIX_HEIGHT);
             // Star color - varying the saturation and value for shades of blue and white
             stars[starX][starY].color = ColorFromPalette(settings->palette, random8(), 255, settings->blend ? LINEARBLEND : NOBLEND);
             stars[starX][starY].brightness = 1.0;
@@ -527,11 +527,11 @@ void SnakeGame(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings 
         // Check for wall collision and wrap around
         if (snake[0].x < 0)
         {
-            snake[0].x = 32 - 1;
+            snake[0].x = MATRIX_WIDTH - 1;
             colorIndex = (colorIndex + 10) % 255;
             snake[0].colorIndex = colorIndex; // Update color index for head segment
         }
-        else if (snake[0].x >= 32)
+        else if (snake[0].x >= MATRIX_WIDTH)
         {
             snake[0].x = 0;
             colorIndex = (colorIndex + 10) % 255;
@@ -539,11 +539,11 @@ void SnakeGame(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings 
         }
         else if (snake[0].y < 0)
         {
-            snake[0].y = 8 - 1;
+            snake[0].y = MATRIX_HEIGHT- 1;
             colorIndex = (colorIndex + 10) % 255;
             snake[0].colorIndex = colorIndex; // Update color index for head segment
         }
-        else if (snake[0].y >= 8)
+        else if (snake[0].y >= MATRIX_HEIGHT)
         {
             snake[0].y = 0;
             colorIndex = (colorIndex + 10) % 255;
@@ -594,12 +594,12 @@ void Fireworks(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings 
         {
             if (fireworks[i].life == 0)
             { // find an unused firework
-                fireworks[i].x = random(32);
-                fireworks[i].y = 8 - 1;
+                fireworks[i].x = random(MATRIX_WIDTH);
+                fireworks[i].y = MATRIX_HEIGHT - 1;
                 fireworks[i].life = 255;
                 fireworks[i].exploded = false;
                 fireworks[i].color = CRGB::White;           // The unexploded firework is white
-                fireworks[i].peak = random(1, 5);           // Set a random peak height for the firework
+                fireworks[i].peak = random(1, MATRIX_HEIGHT-3);           // Set a random peak height for the firework
                 fireworks[i].speed = settings->speed * 0.5; // Set a speed for the firework
                 lastFireworkTime = millis();
                 break;
@@ -664,18 +664,18 @@ void RippleEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettin
     }
 
     // Apply pseudo-blur
-    for (uint16_t i = 0; i < 32; i++)
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             tempLeds[i][j].fadeToBlackBy(45);
         }
     }
 
     // Draw the ripple
-    for (uint16_t i = 0; i < 32; i++)
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             // Calculate distance from the ripple center
             uint16_t dx = abs(i - ripple.x);
@@ -704,9 +704,9 @@ void PlasmaCloudEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectS
     static float plasmaTime = 0;
     static float hueShift = 0;
     // For each pixel, calculate a noise value based on its position and the current time
-    for (uint16_t i = 0; i < 32; i++)
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             float noise = inoise8(i * 16, j * 16, plasmaTime);
             uint8_t hue = noise * 255 / 1024 + hueShift; // Map noise value to hue (0-255) and add hueShift
@@ -730,9 +730,9 @@ void CheckerboardEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, Effect
     CRGB color2 = ColorFromPalette(settings->palette, colorIndex2, 255, settings->blend ? LINEARBLEND : NOBLEND);
 
     // For each pixel, check if its x and y coordinates are both even or both odd
-    for (uint16_t i = 0; i < 32; i++)
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             if ((i % 2 == 0 && j % 2 == 0) || (i % 2 != 0 && j % 2 != 0))
             {
@@ -754,19 +754,19 @@ void RadarEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSetting
 {
     static float beamAngle = 0;
     // Fade the previous state of the leds
-    for (uint16_t i = 0; i < 32; i++)
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             tempLeds[i][j].fadeToBlackBy(20);
         }
     }
 
     // Draw the beam
-    for (uint8_t r = 0; r <= max(32, 8); r++)
+    for (uint8_t r = 0; r <= max(MATRIX_WIDTH, MATRIX_HEIGHT); r++)
     {
-        uint16_t i = 16 + r * (cos8(beamAngle) - 128) / 128.0;
-        uint16_t j = 4 - r * (sin8(beamAngle) - 128) / 128.0;
+        uint16_t i = MATRIX_WIDTH/2 + r * (cos8(beamAngle) - 128) / 128.0;
+        uint16_t j = MATRIX_HEIGHT/2 - r * (sin8(beamAngle) - 128) / 128.0;
         if (i < 32 && j < 8)
         {
             tempLeds[i][j] = ColorFromPalette(settings->palette, beamAngle, 255, settings->blend ? LINEARBLEND : NOBLEND);
@@ -774,9 +774,9 @@ void RadarEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSetting
     }
 
     // Copy the temporary leds array to the actual matrix
-    for (uint16_t i = 0; i < 32; i++)
+    for (uint16_t i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (uint16_t j = 0; j < 8; j++)
+        for (uint16_t j = 0; j < MATRIX_HEIGHT; j++)
         {
             matrix->drawPixel(x + i, y + j, tempLeds[i][j]);
         }
@@ -805,9 +805,9 @@ struct Ball
 void PingPongEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
 
-    static Paddle paddle1 = {8 / 2, 1};       // Paddle on the left side
-    static Paddle paddle2 = {8 / 2, -1};      // Paddle on the right side
-    static Ball ball = {32 / 2, 8 / 2, 1, 1}; // Ball in the middle of the matrix
+    static Paddle paddle1 = {MATRIX_HEIGHT / 2, 1};       // Paddle on the left side
+    static Paddle paddle2 = {MATRIX_HEIGHT / 2, -1};      // Paddle on the right side
+    static Ball ball = {MATRIX_WIDTH / 2, MATRIX_HEIGHT / 2, 1, 1}; // Ball in the middle of the matrix
     static uint32_t lastUpdate = 0;
     // Move the paddles
 
@@ -832,7 +832,7 @@ void PingPongEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSett
         ball.y += ball.dy;
 
         // If the ball has reached the top or bottom edge, change its direction
-        if (ball.y <= 0 || ball.y + BALL_SIZE >= 8)
+        if (ball.y <= 0 || ball.y + BALL_SIZE >= MATRIX_HEIGHT)
         {
             ball.dy = -ball.dy;
         }
@@ -841,8 +841,8 @@ void PingPongEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSett
         if ((ball.x < 0 && (ball.y < paddle1.y || ball.y > paddle1.y + PADDLE_HEIGHT)) ||
             (ball.x + BALL_SIZE > 32 && (ball.y < paddle2.y || ball.y > paddle2.y + PADDLE_HEIGHT)))
         {
-            ball.x = 32 / 2; // Reset ball position
-            ball.y = 8 / 2;
+            ball.x = MATRIX_WIDTH / 2; // Reset ball position
+            ball.y = MATRIX_HEIGHT / 2;
             ball.dx = 1; // Reset ball direction
             ball.dy = 1;
         }
@@ -852,7 +852,7 @@ void PingPongEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSett
         {
             ball.dx = -ball.dx;
         }
-        if (ball.x + BALL_SIZE >= 32 && ball.y >= paddle2.y && ball.y < paddle2.y + PADDLE_HEIGHT)
+        if (ball.x + BALL_SIZE >= MATRIX_WIDTH && ball.y >= paddle2.y && ball.y < paddle2.y + PADDLE_HEIGHT)
         {
             ball.dx = -ball.dx;
         }
@@ -872,7 +872,7 @@ void PingPongEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSett
 // ######## Bricks ############
 #define PADDLE_WIDTH 3 // Width of the paddle
 #define BALL_SIZE 1    // Size of the ball
-#define BRICK_32 16    // Number of bricks in a row
+#define BRICK_32 MATRIX_WIDTH/2    // Number of bricks in a row
 #define BRICK_8 3      // Number of brick 8
 
 struct BricksPaddle
@@ -917,8 +917,8 @@ bool bricksRemain()
 
 void BrickBreakerEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    static BricksPaddle paddle = {32 / 2, 1};       // Paddle in the middle of the matrix
-    static BricksBall ball = {32 / 2, 8 / 2, 1, 1}; // Ball in the middle of the matrix
+    static BricksPaddle paddle = {MATRIX_WIDTH / 2, 1};       // Paddle in the middle of the matrix
+    static BricksBall ball = {MATRIX_WIDTH / 2, MATRIX_HEIGHT / 2, 1, 1}; // Ball in the middle of the matrix
 
     // Initialize the bricks
     static bool firstTime = true;
@@ -947,17 +947,17 @@ void BrickBreakerEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, Effect
         paddle.x = ball.x - 1;
 
         // If the paddle has reached the left or right edge, change its direction
-        if (paddle.x <= 0 || paddle.x + PADDLE_WIDTH >= 32)
+        if (paddle.x <= 0 || paddle.x + PADDLE_WIDTH >= MATRIX_WIDTH)
         {
             paddle.dx = -paddle.dx;
         }
 
         // If the ball has reached the top, bottom, left, or right edge, change its direction
-        if (ball.x <= 0 || ball.x + BALL_SIZE >= 32)
+        if (ball.x <= 0 || ball.x + BALL_SIZE >= MATRIX_WIDTH)
         {
             ball.dx = -ball.dx;
         }
-        if (ball.y <= 0 || ball.y + BALL_SIZE >= 8)
+        if (ball.y <= 0 || ball.y + BALL_SIZE >= MATRIX_HEIGHT)
         {
             ball.dy = -ball.dy;
         }
@@ -966,7 +966,7 @@ void BrickBreakerEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, Effect
         {
             for (int j = 0; j < BRICK_32; j++)
             {
-                if (bricks[i][j] && ball.y == i && ball.x >= j * (32 / BRICK_32) && ball.x < (j + 1) * (32 / BRICK_32))
+                if (bricks[i][j] && ball.y == i && ball.x >= j * (MATRIX_WIDTH / BRICK_32) && ball.x < (j + 1) * (MATRIX_WIDTH / BRICK_32))
                 {
                     bricks[i][j] = false;
                     ball.dy = -ball.dy;
@@ -983,7 +983,7 @@ void BrickBreakerEffect(GenericLedMatrixIF *matrix, int16_t x, int16_t y, Effect
     // Draw the paddle, the ball, and the bricks
     for (int i = 0; i < PADDLE_WIDTH; i++)
     {
-        matrix->drawPixel(x + paddle.x + i, y + 8 - 1, matrix->Color(255, 255, 255));
+        matrix->drawPixel(x + paddle.x + i, y + MATRIX_HEIGHT - 1, matrix->Color(255, 255, 255));
     }
     for (int i = 0; i < BALL_SIZE; i++)
     {
@@ -1014,7 +1014,7 @@ void MovingLine(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings
 
         // Move the line
         linePosition += direction;
-        if (linePosition <= 0 || linePosition + 1 >= 8)
+        if (linePosition <= 0 || linePosition + 1 >= MATRIX_HEIGHT)
         {
             direction = -direction;
         }
@@ -1024,7 +1024,7 @@ void MovingLine(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings
     // Draw the line
     for (int16_t i = 0; i < 1; i++)
     {
-        for (uint16_t j = 0; j < 32; j++)
+        for (uint16_t j = 0; j < MATRIX_WIDTH; j++)
         {
             matrix->drawPixel(x + j, y + linePosition + i, ColorFromPalette(settings->palette, colorIndex, 255, settings->blend ? LINEARBLEND : NOBLEND));
         }
@@ -1038,9 +1038,9 @@ void Fade(GenericLedMatrixIF *matrix, int16_t x, int16_t y, EffectSettings *sett
     hue += settings->speed;
     // Draw the 8 with fading colors based on the palette
 
-    for (int16_t i = 8 - 1; i >= 0; i--)
+    for (int16_t i = MATRIX_HEIGHT - 1; i >= 0; i--)
     {
-        for (uint16_t j = 0; j < 32; j++)
+        for (uint16_t j = 0; j < MATRIX_WIDTH; j++)
         {
             CRGB color = ColorFromPalette(settings->palette, hue + (i * 256 / 8), 255, settings->blend ? LINEARBLEND : NOBLEND);
             matrix->drawPixel(x + j, y + i, color);
@@ -1233,11 +1233,11 @@ OverlayEffect getOverlay(String overlay)
 
 void EffectOverlay(GenericLedMatrixIF *matrix, int16_t x, int16_t y, OverlayEffect effect)
 {
-    static CRGB leds[32][8] = {CRGB::Black}; // Initialize all LEDs to black
-    static int colorChanges[32][8] = {0};
+    static CRGB leds[MATRIX_WIDTH][MATRIX_HEIGHT] = {CRGB::Black}; // Initialize all LEDs to black
+    static int colorChanges[MATRIX_WIDTH][MATRIX_HEIGHT] = {0};
     static bool lightning = false;                // Track whether lightning is happening
     static unsigned long lastLightningMillis = 0; // Store last time lightning happened
-    static unsigned long lastUpdate[32][8] = {0}; // Store the last update time for each LED
+    static unsigned long lastUpdate[MATRIX_WIDTH][MATRIX_HEIGHT] = {0}; // Store the last update time for each LED
     static int lightningDuration = 50;            // Duration of lightning flash in milliseconds
     static int updateFrame = 0;                   // Counter to control the update rate of the display
     static int windFrame = 0;                     // Additional variable for wind logic during storms
@@ -1265,13 +1265,13 @@ void EffectOverlay(GenericLedMatrixIF *matrix, int16_t x, int16_t y, OverlayEffe
     {
         if (random8() < rainChance)
         {
-            int randomColumn = random8(32);
+            int randomColumn = random8(MATRIX_WIDTH);
             leds[randomColumn][0] = color;
         }
     }
     else if (effect == SNOW && random8() < 20)
     {
-        int randomColumn = random8(32);
+        int randomColumn = random8(MATRIX_WIDTH);
         leds[randomColumn][0] = CHSV(0, 0, 255); // White for snow
     }
 
@@ -1279,9 +1279,9 @@ void EffectOverlay(GenericLedMatrixIF *matrix, int16_t x, int16_t y, OverlayEffe
     if (effect == FROST)
     {
         // Go through each LED and update its status
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < MATRIX_WIDTH; i++)
         {
-            for (int j = 0; j < 8; j++)
+            for (int j = 0; j < MATRIX_HEIGHT; j++)
             {
                 // If a pixel is currently active, update its color
                 if (colorChanges[i][j] > 0)
@@ -1304,8 +1304,8 @@ void EffectOverlay(GenericLedMatrixIF *matrix, int16_t x, int16_t y, OverlayEffe
         // Randomly activate new pixels
         if (random8() < 25)
         {
-            int i = random8(32);
-            int j = random8(8);
+            int i = random8(MATRIX_WIDTH);
+            int j = random8(MATRIX_HEIGHT);
             // Activate the new pixel only if it is currently off
             if (colorChanges[i][j] == 0)
             {
@@ -1318,9 +1318,9 @@ void EffectOverlay(GenericLedMatrixIF *matrix, int16_t x, int16_t y, OverlayEffe
     // Update movement for all effects except NONE and ICE
     if (effect != NONE && effect != FROST && ++updateFrame >= (effect == SNOW ? 5 : 2))
     {
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < MATRIX_WIDTH; i++)
         {
-            for (int j = 7; j > 0; j--)
+            for (int j = MATRIX_HEIGHT-1; j > 0; j--)
             {
                 leds[i][j] = leds[i][j - 1];
             }
@@ -1332,9 +1332,9 @@ void EffectOverlay(GenericLedMatrixIF *matrix, int16_t x, int16_t y, OverlayEffe
     // Wind logic for storm and thunder
     if ((effect == STORM || effect == THUNDER) && ++windFrame >= 3)
     {
-        for (int j = 0; j < 8; j++)
+        for (int j = 0; j < MATRIX_HEIGHT; j++)
         {
-            for (int i = 31; i > 0; i--)
+            for (int i = MATRIX_WIDTH-1; i > 0; i--)
             {
                 leds[i][j] = leds[i - 1][j];
             }
@@ -1344,9 +1344,9 @@ void EffectOverlay(GenericLedMatrixIF *matrix, int16_t x, int16_t y, OverlayEffe
     }
 
     // Draw the updated LEDs
-    for (int i = 0; i < 32; i++)
+    for (int i = 0; i < MATRIX_WIDTH; i++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int j = 0; j < MATRIX_HEIGHT; j++)
         {
             if (lightning && effect == THUNDER)
             {

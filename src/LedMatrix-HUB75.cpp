@@ -46,7 +46,7 @@ HUB75_I2S_CFG mxconfig(
     HUB75_I2S_CFG::FM6124, // shift_driver 
     HUB75_I2S_CFG::TYPE_DIRECT, //line_driver
     true, // double buffer 
-    HUB75_I2S_CFG::HZ_16M, // clk_speed _i2sspeed
+    HUB75_I2S_CFG::HZ_10M, // clk_speed _i2sspeed
     1, // Anything > 1 seems to cause artefacts on ICS panels
     false,  // clockphase
 #else

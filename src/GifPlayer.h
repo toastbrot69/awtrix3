@@ -565,6 +565,52 @@ public:
     return newframeDelay;
   }
 
+  int drawGif(int x, int y, uint8_t frame = 0)
+  {
+    offsetX = x;
+    offsetY = y;
+
+    if (!file)
+      return 0;
+
+    if (frame != 0)
+    {
+      do
+      {
+        drawFrame(true);
+      } while (currentFrame < frame);
+    }
+    else
+    {
+      drawFrame();
+    }
+
+    return lsdWidth;
+  }
+
+  bool setGif(void)
+  {
+    if (!file)
+      return false;
+
+    currentFrame = 0;
+
+    //memset(FrameBuffer, 0, sizeof(FrameBuffer));
+    memset(gifPalette, 0, sizeof(gifPalette));
+    //memset(lzwImageData, 0, sizeof(lzwImageData));
+    memset(imageData, 0, sizeof(imageData));
+    memset(imageDataBU, 0, sizeof(imageDataBU));
+    //memset(stack, 0, sizeof(stack));
+    //memset(suffix, 0, sizeof(suffix));
+    //memset(prefix, 0, sizeof(prefix));
+
+    parseGifHeader();
+    parseLogicalScreenDescriptor();
+    parseGlobalColorTable();
+
+    return true;
+  }
+
   int playGif(int x, int y, File *imageFile, uint32_t frame = 0)
   {
     if(imageFile == NULL || ! *imageFile)
@@ -591,12 +637,13 @@ public:
       //memset(stack, 0, sizeof(stack));
       //memset(suffix, 0, sizeof(suffix));
       //memset(prefix, 0, sizeof(prefix));
+
+      parseGifHeader();
+      parseLogicalScreenDescriptor();
+      parseGlobalColorTable();
+
       if (frame != 0)
       {
-
-        parseGifHeader();
-        parseLogicalScreenDescriptor();
-        parseGlobalColorTable();
         do
         {
           drawFrame(true);
@@ -604,9 +651,6 @@ public:
       }
       else
       {
-        parseGifHeader();
-        parseLogicalScreenDescriptor();
-        parseGlobalColorTable();
         drawFrame();
       }
     }
