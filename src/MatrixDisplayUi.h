@@ -52,6 +52,7 @@ protected:
   String    p_iconname, p_filename;
   uint32_t  p_ix;
   bool      p_alt;
+  bool      p_was_used;
 public:
   IconDisplayer();
 
@@ -59,6 +60,9 @@ public:
 
   bool set(const String& iconname);
   void release(void);
+
+  void preparegarbarge(void);
+  void garbarge(void);
 
   int      display(int x, int y, uint8_t frame = 0);
   uint8_t  getCurrentFrame(void) { return GifPlayer::getFrame();  }

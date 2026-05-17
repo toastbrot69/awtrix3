@@ -39,6 +39,7 @@ IMPLEMENT_GIFPLAYER()
 IconDisplayer::IconDisplayer()
 {
   p_type = t_unk;
+  p_was_used = false;
 }
 
 void IconDisplayer::setMatrix(GenericLedMatrixIF *matrix, uint32_t ix, bool alt)
@@ -94,13 +95,16 @@ bool IconDisplayer::set(const String& iconname)
 
 void IconDisplayer::release(void)
 {
-  if(p_iconname.length() > 0)
-    ESP_LOGE("icons", "IconDisplayer[%u:%s]::release(%s)", p_ix, p_alt? "1":"0", p_iconname.c_str());
+  if(p_iconname.length() == 0)
+    return;
+  
+  ESP_LOGE("icons", "IconDisplayer[%u:%s]::release(%s)", p_ix, p_alt? "1":"0", p_iconname.c_str());
 
   GifPlayer::file.close();
   p_filename.clear();
   p_iconname.clear();
   p_type = t_unk;
+  p_was_used = false;
 }
 
 int IconDisplayer::display(int x, int y, uint8_t frame)
@@ -111,11 +115,13 @@ int IconDisplayer::display(int x, int y, uint8_t frame)
   {
     case t_gif:
       ret = GifPlayer::drawGif(x, y, frame);
+      p_was_used = true;
     break;
 
     case t_jpg:
       DisplayManager.drawJPG(x, y, GifPlayer::file);
       ret = 8;
+      p_was_used = true;
     break;
 
     default:
@@ -123,6 +129,34 @@ int IconDisplayer::display(int x, int y, uint8_t frame)
   }
 
   return ret;
+}
+
+void IconDisplayer::preparegarbarge(void)
+{
+  p_was_used = false;
+}
+
+void IconDisplayer::garbarge(void)
+{
+  if(p_was_used == false)
+  {
+    release();
+  }
+}
+
+void prepareAllDisplayers(void)
+{
+  for(int t = 0; t < MAX_ICONS_PER_SCREEN*2; t++)
+  {
+    displayer[t].preparegarbarge();
+  }
+}
+void postAllDisplayers(void)
+{
+  for(int t = 0; t < MAX_ICONS_PER_SCREEN*2; t++)
+  {
+    displayer[t].garbarge();
+  }
 }
 
 void clearAllDisplayers(void)
@@ -522,6 +556,8 @@ void MatrixDisplayUiState::setAppState(AppState a)
 
 void MatrixDisplayUi::drawApp()
 {
+  prepareAllDisplayers();
+
   switch (this->state.appState)
   {
   case IN_TRANSITION:
@@ -586,15 +622,6 @@ void MatrixDisplayUi::drawApp()
 
     uint8_t cur_app = this->state.currentApp;
 
-    static uint8_t last_cur_app = cur_app;
-
-    if(cur_app != last_cur_app)
-    {
-      clearAllDisplayers();
-
-      last_cur_app = cur_app;
-    }
-
     #if 0
       this->AppBases[this->state.currentApp]->do_the_app(this->matrix, &this->state, 0, 0, false);
     #else
@@ -616,6 +643,8 @@ void MatrixDisplayUi::drawApp()
     swapped = true;
     break;
   }
+
+  postAllDisplayers();
 }
 
 bool MatrixDisplayUi::isCurrentAppValid()
