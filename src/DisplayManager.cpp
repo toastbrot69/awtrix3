@@ -764,7 +764,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     pushCustomApp(newapp, pos - 1);
   }
   
-  ESP_LOGE("mqtt", "pushCustomApp(%s) '%s' '%s'\r\n", name.c_str(), customApp->text.c_str(), customApps[name]->text.c_str());
+  //ESP_LOGE("mqtt", "pushCustomApp(%s) '%s' '%s'\r\n", name.c_str(), customApp->text.c_str(), customApps[name]->text.c_str());
 
   DEBUG_PRINTF("pushCustomApp(%s) %s\r\n", name.c_str(), customApps[name]->text.c_str());
 

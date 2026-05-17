@@ -200,7 +200,7 @@ void processMqttMessage(const String &strTopic, const String &payloadCopy)
     {
         String topic_str = strTopic;
         String prefix = MQTT_PREFIX + "/custom/";
-        ESP_LOGE("mqtt", "mqtt: %s", strTopic.c_str());
+       // ESP_LOGE("mqtt", "mqtt: %s", strTopic.c_str());
         if (topic_str.startsWith(prefix))
         {
             topic_str = topic_str.substring(prefix.length());
