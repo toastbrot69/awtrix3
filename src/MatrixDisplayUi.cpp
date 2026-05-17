@@ -32,7 +32,7 @@
 #include "Globals.h"
 #include "effects.h"
 
-IconDisplayer displayer[2][MAX_ICONS_PER_SCREEN];
+IconDisplayer displayer[MAX_ICONS_PER_SCREEN*2];
 
 IMPLEMENT_GIFPLAYER()
 
@@ -129,21 +129,23 @@ void clearAllDisplayers(void)
 {
   ESP_LOGE("icons", "clearAllDisplayers");
 
-  for(int t = 0; t < MAX_ICONS_PER_SCREEN; t++)
+  for(int t = 0; t < MAX_ICONS_PER_SCREEN*2; t++)
   {
-    displayer[0][t].release();
-    displayer[1][t].release();
+    displayer[t].release();
+    //displayer[0][t].release();
+    //displayer[1][t].release();
   }
 }
 
 IconDisplayer* getDisplayer(const String& iconname, bool arr2)
 {
-  IconDisplayer* arr = arr2 ? displayer[1] : displayer[0];
+  //IconDisplayer* arr = arr2 ? displayer[1] : displayer[0];
 
+  IconDisplayer* arr = displayer;
   int t;
 
   // gibts das schon?
-  for(t = 0; t < MAX_ICONS_PER_SCREEN; t++)
+  for(t = 0; t < MAX_ICONS_PER_SCREEN*2; t++)
   {
     if(arr[t].getIconName() == iconname)
     {
@@ -151,7 +153,7 @@ IconDisplayer* getDisplayer(const String& iconname, bool arr2)
     } 
   }
 
-  for(t = 0; t < MAX_ICONS_PER_SCREEN; t++)
+  for(t = 0; t < MAX_ICONS_PER_SCREEN*2; t++)
   {
     if(arr[t].isEmpty())
     {
@@ -184,10 +186,11 @@ void MatrixDisplayUi::init()
   this->matrix->setTextWrap(false);
   this->matrix->setBrightness(70);
 
-  for(int t = 0; t < MAX_ICONS_PER_SCREEN; t++)
+  for(int t = 0; t < MAX_ICONS_PER_SCREEN*2; t++)
   {
-    displayer[0][t].setMatrix(this->matrix, t, false);
-    displayer[1][t].setMatrix(this->matrix, t, true);
+    displayer[t].setMatrix(this->matrix, t, false);
+    //displayer[0][t].setMatrix(this->matrix, t, false);
+    //displayer[1][t].setMatrix(this->matrix, t, true);
   }
 }
 
