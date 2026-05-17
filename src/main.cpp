@@ -106,9 +106,9 @@ void setup()
     while (x >= -textLength)
     {
       DisplayManager.HSVtext(x, 6, textForDisplay.c_str(), true, 0);
-      x -= 0.18;
+      x -= 1;
+      delay(80);
     }
-
     
       if (MQTT_HOST != "")
       {

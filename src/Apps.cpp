@@ -470,7 +470,7 @@ uint32_t ShowCustomApp(CustomApp* ca, GenericLedMatrixIF *matrix, MatrixDisplayU
     CURRENT_APP = ca->name;
     currentCustomApp = ca->name;
 
-    bool hasIcon = ca->jpegDataSize > 0 || ca->icons[0].length() > 0;
+    bool hasIcon = ca->jpegDataSize > 0 || ca->icon.length() > 0;
 
     uint16_t textWidth = 0;
     if (!ca->fragments.empty())
@@ -519,7 +519,7 @@ uint32_t ShowCustomApp(CustomApp* ca, GenericLedMatrixIF *matrix, MatrixDisplayU
             }
             else
             {
-                IconDisplayer* d = getDisplayer(ca->icons[0], alt_display);
+                IconDisplayer* d = getDisplayer(ca->icon, alt_display);
                 if(d)
                 {
                     iconWidth = d->display(x + ca->iconPosition + ca->iconOffset, y);

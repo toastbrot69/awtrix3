@@ -672,22 +672,22 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
     if (newIconName.length() > 64)
     {
-      customApp.icons[0].clear();
+      customApp.icon.clear();
       customApp.jpegDataSize = 0;
       
       customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
     }
-    else if (customApp.icons[0] != newIconName)
+    else if (customApp.icon != newIconName)
     {
       customApp.jpegDataSize = 0;
       customApp.iconPosition = 0;
 
-      customApp.icons[0] = newIconName;
+      customApp.icon = newIconName;
     }
   }
   else
   {
-    customApp.icons[0].clear();
+    customApp.icon.clear();
     customApp.jpegDataSize = 0;
     customApp.iconPosition = 0;
   }
@@ -1165,7 +1165,7 @@ void ResetCustomApps()
     if (app.name != currentCustomApp)
     {
       app.iconWasPushed = false;
-      app.scrollposition = (app.icons[0].length() > 0 ? 9 : 0) + app.textOffset;
+      app.scrollposition = (app.icon.length() > 0 ? 9 : 0) + app.textOffset;
       app.iconPosition = 0;
       app.scrollDelay = 0;
       app.currentRepeat = 0;
@@ -2310,7 +2310,7 @@ String DisplayManager_::getAppsWithIcon()
     CustomApp *customApp = getCustomAppByName(app.first);
     if (customApp != nullptr)
     {
-      appObject["icon"] = customApp->icons[0];
+      appObject["icon"] = customApp->icon;
     }
   }
   String jsonString;

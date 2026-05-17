@@ -18,7 +18,7 @@ public:
 private:
   long lastFrameTime;
   int newframeDelay;
-  //CRGB FrameBuffer[HEIGHT][WIDTH];
+  CRGB FrameBuffer[HEIGHT][WIDTH];
   bool lastFrameDrawn = false;
   unsigned long nextFrameTime = 0;
 #define GIFHDRTAGNORM "GIF87a"
@@ -465,6 +465,8 @@ public:
         int xDraw = x + offsetX;
         int yDraw = y + offsetY;
 
+        mtx->drawPixel(xDraw, yDraw, FrameBuffer[y][x]);
+/*
         uint32_t yOffset = y * WIDTH;
         uint8_t pixel = imageData[yOffset + x];
 
@@ -477,6 +479,8 @@ public:
 
           mtx->drawPixel(xDraw, yDraw, color);
         }
+
+        */
       }
     }
   }
@@ -510,41 +514,32 @@ public:
       }
     }
 
-    if(disposalMethod == DISPOSAL_BACKGROUND)
+    int pixel, yOffset;
+    for (int y = tbiImageY; y < tbiHeight + tbiImageY; y++)
     {
-      int pixel, yOffset;
-      for (int y = tbiImageY; y < tbiHeight + tbiImageY; y++)
+      yOffset = y * WIDTH;
+      for (int x = tbiImageX; x < tbiWidth + tbiImageX; x++)
       {
-        yOffset = y * WIDTH;
-        for (int x = tbiImageX; x < tbiWidth + tbiImageX; x++)
+        pixel = imageData[yOffset + x];
+
+        if (pixel != transparentColorIndex)
         {
-          pixel = imageData[yOffset + x];
-
-          if(pixel == transparentColorIndex)
+          CRGB color;
+          color.r = gifPalette[pixel].Red;
+          color.g = gifPalette[pixel].Green;
+          color.b = gifPalette[pixel].Blue;
+          FrameBuffer[y][x] = color;
+        }
+        else
+        {
+          if (disposalMethod == DISPOSAL_BACKGROUND)
           {
-            imageData[yOffset + x] = prevBackgroundIndex;
+            FrameBuffer[y][x] = CRGB::Black;
           }
-
-          /*
-          if (pixel != transparentColorIndex)
-          {
-            CRGB color;
-            color.r = gifPalette[pixel].Red;
-            color.g = gifPalette[pixel].Green;
-            color.b = gifPalette[pixel].Blue;
-            FrameBuffer[y][x] = color;
-          }
-          else
-          {
-            if (disposalMethod == DISPOSAL_BACKGROUND)
-            {
-              FrameBuffer[y][x] = CRGB::Black;
-            }
-          }
-          */
         }
       }
     }
+  
     ++currentFrame;
     lastFrameTime = millis();
   }
@@ -595,14 +590,14 @@ public:
 
     currentFrame = 0;
 
-    //memset(FrameBuffer, 0, sizeof(FrameBuffer));
+    memset(FrameBuffer, 0, sizeof(FrameBuffer));
     memset(gifPalette, 0, sizeof(gifPalette));
-    //memset(lzwImageData, 0, sizeof(lzwImageData));
+    memset(lzwImageData, 0, sizeof(lzwImageData));
     memset(imageData, 0, sizeof(imageData));
     memset(imageDataBU, 0, sizeof(imageDataBU));
-    //memset(stack, 0, sizeof(stack));
-    //memset(suffix, 0, sizeof(suffix));
-    //memset(prefix, 0, sizeof(prefix));
+    memset(stack, 0, sizeof(stack));
+    memset(suffix, 0, sizeof(suffix));
+    memset(prefix, 0, sizeof(prefix));
 
     parseGifHeader();
     parseLogicalScreenDescriptor();
@@ -629,14 +624,14 @@ public:
       currentFrame = 0;
       file = *imageFile;
 
-      //memset(FrameBuffer, 0, sizeof(FrameBuffer));
+      memset(FrameBuffer, 0, sizeof(FrameBuffer));
       memset(gifPalette, 0, sizeof(gifPalette));
-      //memset(lzwImageData, 0, sizeof(lzwImageData));
+      memset(lzwImageData, 0, sizeof(lzwImageData));
       memset(imageData, 0, sizeof(imageData));
       memset(imageDataBU, 0, sizeof(imageDataBU));
-      //memset(stack, 0, sizeof(stack));
-      //memset(suffix, 0, sizeof(suffix));
-      //memset(prefix, 0, sizeof(prefix));
+      memset(stack, 0, sizeof(stack));
+      memset(suffix, 0, sizeof(suffix));
+      memset(prefix, 0, sizeof(prefix));
 
       parseGifHeader();
       parseLogicalScreenDescriptor();
