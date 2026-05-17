@@ -282,10 +282,10 @@ void DisplayManager_::GradientText(int16_t x, int16_t y, const char *text, int c
 
 void pushCustomApp(CustomApp& ca, int position)
 {
+  int availableCallbackIndex = -1;
+
   if (customApps.count(ca.name) == 0)
   {
-    int availableCallbackIndex = -1;
-
     for (int i = 0; i < CUSTOMAPP_COUNT; ++i)
     {
       bool callbackUsed = false;
@@ -483,25 +483,30 @@ void subscribeToPlaceholders(String text)
 
 bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, bool preventSave)
 {
-  CustomApp customApp;
+  CustomApp* customApp;
+  CustomApp newapp;
 
   if (customApps.find(name) != customApps.end())
   {
-    customApp = *customApps[name];
+    customApp = customApps[name];
+  }
+  else
+  {
+    customApp = &newapp;
   }
 
-  customApp.name = name;
+  customApp->name = name;
 
-  customApp.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
+  customApp->progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
 
   if (doc.containsKey("background"))
   {
     auto background = doc["background"];
-    customApp.background = getColorFromJsonVariant(background, 0);
+    customApp->background = getColorFromJsonVariant(background, 0);
   }
   else
   {
-    customApp.background = 0;
+    customApp->background = 0;
   }
 
   if (doc.containsKey("save") && preventSave == false)
@@ -532,21 +537,21 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
   if (doc.containsKey("progressC"))
   {
     auto progressC = doc["progressC"];
-    customApp.pColor = getColorFromJsonVariant(progressC, 0x00FF00);
+    customApp->pColor = getColorFromJsonVariant(progressC, 0x00FF00);
   }
   else
   {
-    customApp.pColor = 0x00FF00;
+    customApp->pColor = 0x00FF00;
   }
 
   if (doc.containsKey("progressBC"))
   {
     auto progressBC = doc["progressBC"];
-    customApp.pbColor = getColorFromJsonVariant(progressBC, 0xFFFFFF);
+    customApp->pbColor = getColorFromJsonVariant(progressBC, 0xFFFFFF);
   }
   else
   {
-    customApp.pbColor = 0xFFFFFF;
+    customApp->pbColor = 0xFFFFFF;
   }
 
   bool autoscale = true;
@@ -557,8 +562,8 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   // Handling for "bar" and "line" as they have similar structures
   const char *dataKeys[] = {"bar", "line"};
-  int *dataArrays[] = {customApp.barData, customApp.lineData};
-  int *dataSizeArrays[] = {&customApp.barSize, &customApp.lineSize};
+  int *dataArrays[] = {customApp->barData, customApp->lineData};
+  int *dataSizeArrays[] = {&customApp->barSize, &customApp->lineSize};
 
   for (int i = 0; i < 2; i++)
   {
@@ -571,11 +576,11 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
       if (doc.containsKey("barBC"))
       {
         auto color = doc["barBC"];
-        customApp.barBG = getColorFromJsonVariant(color, 0);
+        customApp->barBG = getColorFromJsonVariant(color, 0);
       }
       else
       {
-        customApp.barBG = 0;
+        customApp->barBG = 0;
       }
       JsonArray data = doc[key];
       int index = 0;
@@ -612,59 +617,59 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   if (doc.containsKey("height"))
   {
-    customApp.height = doc["height"].as<uint32_t>();
+    customApp->height = doc["height"].as<uint32_t>();
   }
   else
   {
-    customApp.height = 8;
+    customApp->height = 8;
   }
 
   if (doc.containsKey("draw"))
   {
-    customApp.drawInstructions = doc["draw"].as<String>();
+    customApp->drawInstructions = doc["draw"].as<String>();
   }
   else
   {
-    customApp.drawInstructions = "";
+    customApp->drawInstructions = "";
   }
 
   if (doc.containsKey("effect"))
   {
-    customApp.effect = getEffectIndex(doc["effect"].as<String>());
+    customApp->effect = getEffectIndex(doc["effect"].as<String>());
     if (doc.containsKey("effectSettings"))
     {
-      updateEffectSettings(customApp.effect, doc["effectSettings"].as<String>());
+      updateEffectSettings(customApp->effect, doc["effectSettings"].as<String>());
     }
   }
-  customApp.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : 0;
+  customApp->duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : 0;
   int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
-  customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
-  customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
+  customApp->rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
+  customApp->pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
 
-  customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
+  customApp->textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
 
   if (doc.containsKey("lifetime"))
   {
-    customApp.lifetime = doc["lifetime"];
-    customApp.lifetimeMode = doc.containsKey("lifetimeMode") ? doc["lifetimeMode"] : 0;
+    customApp->lifetime = doc["lifetime"];
+    customApp->lifetimeMode = doc.containsKey("lifetimeMode") ? doc["lifetimeMode"] : 0;
   }
   else
   {
-    customApp.lifetime = 0;
+    customApp->lifetime = 0;
   }
 
-  customApp.bounce = doc.containsKey("bounce") ? doc["bounce"].as<bool>() : false;
-  customApp.iconOffset = doc.containsKey("iconOffset") ? doc["iconOffset"] : 0;
-  customApp.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
-  customApp.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
-  customApp.topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
-  customApp.fade = doc.containsKey("fadeText") ? doc["fadeText"].as<int>() : 0;
-  customApp.blink = doc.containsKey("blinkText") ? doc["blinkText"].as<int>() : 0;
-  customApp.center = doc.containsKey("center") ? doc["center"].as<bool>() : true;
-  customApp.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
-  customApp.name = name;
+  customApp->bounce = doc.containsKey("bounce") ? doc["bounce"].as<bool>() : false;
+  customApp->iconOffset = doc.containsKey("iconOffset") ? doc["iconOffset"] : 0;
+  customApp->textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
+  customApp->scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
+  customApp->topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
+  customApp->fade = doc.containsKey("fadeText") ? doc["fadeText"].as<int>() : 0;
+  customApp->blink = doc.containsKey("blinkText") ? doc["blinkText"].as<int>() : 0;
+  customApp->center = doc.containsKey("center") ? doc["center"].as<bool>() : true;
+  customApp->noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
+  customApp->name = name;
 
-  customApp.overlay = doc.containsKey("overlay") ? getOverlay(doc["overlay"].as<String>()) : NONE;
+  customApp->overlay = doc.containsKey("overlay") ? getOverlay(doc["overlay"].as<String>()) : NONE;
 
   if (doc.containsKey("icon"))
   {
@@ -672,28 +677,28 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
     if (newIconName.length() > 64)
     {
-      customApp.icon.clear();
-      customApp.jpegDataSize = 0;
+      customApp->icon.clear();
+      customApp->jpegDataSize = 0;
       
-      customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
+      customApp->jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp->jpegDataBuffer);
     }
-    else if (customApp.icon != newIconName)
+    else if (customApp->icon != newIconName)
     {
-      customApp.jpegDataSize = 0;
-      customApp.iconPosition = 0;
+      customApp->jpegDataSize = 0;
+      customApp->iconPosition = 0;
 
-      customApp.icon = newIconName;
+      customApp->icon = newIconName;
     }
   }
   else
   {
-    customApp.icon.clear();
-    customApp.jpegDataSize = 0;
-    customApp.iconPosition = 0;
+    customApp->icon.clear();
+    customApp->jpegDataSize = 0;
+    customApp->iconPosition = 0;
   }
 
-  customApp.gradient[0] = -1;
-  customApp.gradient[1] = -1;
+  customApp->gradient[0] = -1;
+  customApp->gradient[1] = -1;
 
   if (doc.containsKey("gradient"))
   {
@@ -703,60 +708,65 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
       auto color1 = arr[0];
       auto color2 = arr[1];
 
-      customApp.gradient[0] = getColorFromJsonVariant(color1, TEXTCOLOR_888);
-      customApp.gradient[1] = getColorFromJsonVariant(color2, TEXTCOLOR_888);
+      customApp->gradient[0] = getColorFromJsonVariant(color1, TEXTCOLOR_888);
+      customApp->gradient[1] = getColorFromJsonVariant(color2, TEXTCOLOR_888);
     }
   }
 
   if (doc.containsKey("color"))
   {
-    customApp.hasCustomColor = true;
+    customApp->hasCustomColor = true;
     auto color = doc["color"];
-    customApp.color = getColorFromJsonVariant(color, TEXTCOLOR_888);
+    customApp->color = getColorFromJsonVariant(color, TEXTCOLOR_888);
   }
   else
   {
-    customApp.hasCustomColor = false;
-    customApp.color = TEXTCOLOR_888;
+    customApp->hasCustomColor = false;
+    customApp->color = TEXTCOLOR_888;
   }
 
-  customApp.colors.clear();
-  customApp.fragments.clear();
+  customApp->colors.clear();
+  customApp->fragments.clear();
 
   if (doc.containsKey("text") && doc["text"].is<JsonArray>())
   {
     JsonArray textArray = doc["text"].as<JsonArray>();
-    parseFragmentsText(textArray, customApp.colors, customApp.fragments, customApp.color);
+    parseFragmentsText(textArray, customApp->colors, customApp->fragments, customApp->color);
   }
   else if (doc.containsKey("text"))
   {
     String text = doc["text"].as<String>();
     subscribeToPlaceholders(utf8ascii(text));
-    customApp.text = utf8ascii(text);
+    customApp->text = utf8ascii(text);
   }
   else
   {
-    customApp.text = "";
+    customApp->text = "";
   }
 
   if (currentCustomApp != name)
   {
-    customApp.scrollposition = 9 + customApp.textOffset;
+    customApp->scrollposition = 9 + customApp->textOffset;
   }
 
-  customApp.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
-  if (customApp.noScrolling)
+  customApp->repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
+  if (customApp->noScrolling)
   {
-    customApp.repeat = -1;
+    customApp->repeat = -1;
   }
 
-  customApp.lastUpdate = millis();
-  customApp.lifeTimeEnd = false;
+  customApp->lastUpdate = millis();
+  customApp->lifeTimeEnd = false;
   doc.clear();
 
-  pushCustomApp(customApp, pos - 1);
+  if(customApp == &newapp)
+  {
+    pushCustomApp(newapp, pos - 1);
+  }
+  
+  ESP_LOGE("mqtt", "pushCustomApp(%s) '%s' '%s'\r\n", name.c_str(), customApp->text.c_str(), customApps[name]->text.c_str());
 
-  DEBUG_PRINTF("pushCustomApp(%s) %s\r\n", name.c_str(), customApps[name]->name.c_str());
+  DEBUG_PRINTF("pushCustomApp(%s) %s\r\n", name.c_str(), customApps[name]->text.c_str());
 
   return true;
 }

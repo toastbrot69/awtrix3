@@ -88,9 +88,12 @@ bool IconDisplayer::set(const String& iconname)
 
   ESP_LOGE("icons", "IconDisplayer[%u:%s]::set(%s): file not found", p_ix, p_alt? "1":"0", iconname.c_str());
 
-  p_iconname.clear();
-  p_filename.clear();
-  return false;
+  //p_iconname.clear();
+  //p_filename.clear();
+  p_iconname = iconname;
+  p_type=t_not_found;
+
+  return true;
 }
 
 void IconDisplayer::release(void)
@@ -120,6 +123,11 @@ int IconDisplayer::display(int x, int y, uint8_t frame)
 
     case t_jpg:
       DisplayManager.drawJPG(x, y, GifPlayer::file);
+      ret = 8;
+      p_was_used = true;
+    break;
+
+    case t_not_found:
       ret = 8;
       p_was_used = true;
     break;

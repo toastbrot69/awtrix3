@@ -45,7 +45,8 @@ protected:
   {
     t_unk = 0,
     t_gif,
-    t_jpg
+    t_jpg,
+    t_not_found
   }type_e;
 
   type_e    p_type;
